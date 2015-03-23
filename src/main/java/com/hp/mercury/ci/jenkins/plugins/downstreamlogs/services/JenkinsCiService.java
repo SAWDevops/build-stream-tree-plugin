@@ -11,4 +11,9 @@ public class JenkinsCiService implements CiService {
     public <T> Jenkins getCiInstance() {
         return Jenkins.getInstance();
     }
+
+    @Override
+    public <T> hudson.model.Item getItemByFullName(String itemName, Class clazz) {
+        return getCiInstance().getItemByFullName(itemName, clazz);
+    }
 }

@@ -1,5 +1,7 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiService;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.JenkinsCiService;
 import groovy.lang.Binding;
 import hudson.model.Job;
 import hudson.model.Run;
@@ -21,13 +23,15 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
 
     public static class BuildEntry extends BuildStreamTreeEntry{
 
+        private CiService ciService;
         transient Run run;
         private final String jobName;
         private final int buildNumber;
 
         public Run getRun() {
             if (run == null) {
-                final Job job = Jenkins.getInstance().getItemByFullName(jobName, Job.class);
+                //TODO: remove casting to job
+                final Job job = (Job)ciService.getItemByFullName(jobName,Job.class);
                 if (job != null) {
                     this.run = job.getBuildByNumber(buildNumber);
                 }
@@ -37,7 +41,15 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
 
         public BuildEntry(Run run) {
             this.run = run;
+            //TODO: should we have this constructor at all?
+            this.ciService = new JenkinsCiService();
+            this.jobName = this.run.getParent().getFullDisplayName();
+            this.buildNumber = this.run.getNumber();
+        }
 
+        public BuildEntry(Run run, CiService ciService) {
+            this.run = run;
+            this.ciService = ciService;
             this.jobName = this.run.getParent().getFullDisplayName();
             this.buildNumber = this.run.getNumber();
         }

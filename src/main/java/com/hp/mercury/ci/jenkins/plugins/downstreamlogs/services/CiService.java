@@ -6,4 +6,6 @@ package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 public interface CiService {
 
     public <T> jenkins.model.Jenkins getCiInstance();
+
+    public <T> hudson.model.Item getItemByFullName(String itemName, Class clazz);
 }
