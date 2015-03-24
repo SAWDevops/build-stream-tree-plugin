@@ -36,11 +36,7 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
         }
 
         public BuildEntry(Run run) {
-            this.run = run;
-            //TODO: should we have this constructor at all?
-            this.ciService = new JenkinsCiService();
-            this.jobName = this.run.getParent().getFullDisplayName();
-            this.buildNumber = this.run.getNumber();
+            this(run, new JenkinsCiService());
         }
 
         public BuildEntry(Run run, CiService ciService) {

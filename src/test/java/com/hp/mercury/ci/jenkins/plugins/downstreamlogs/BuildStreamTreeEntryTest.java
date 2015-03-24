@@ -28,8 +28,27 @@ public class BuildStreamTreeEntryTest extends TestCase {
         buildEntry =
                 new BuildStreamTreeEntry.BuildEntry(ciService.getBuildByNameAndNumber(testJobName, -1));
         assert testJobName.equals(buildEntry.getJobName());
+    }
 
+    public void testGetBuildNumber(){
+        String testJobName = "myJob";
+        int buildNumber = 1;
 
+        //1. legal job name and build number
+        BuildStreamTreeEntry.BuildEntry buildEntry =
+                new BuildStreamTreeEntry.BuildEntry(ciService.getBuildByNameAndNumber(testJobName, buildNumber));
+        assert buildNumber == buildEntry.getBuildNumber();
+
+        //2. null job name and legal build number
+        buildEntry =
+                new BuildStreamTreeEntry.BuildEntry(ciService.getBuildByNameAndNumber(null, buildNumber));
+        assert buildNumber == buildEntry.getBuildNumber();
+
+        //3. legal job name and negative build number
+        buildNumber = -1;
+        buildEntry =
+                new BuildStreamTreeEntry.BuildEntry(ciService.getBuildByNameAndNumber(testJobName, -1));
+        assert buildNumber == buildEntry.getBuildNumber();
     }
 
 }
