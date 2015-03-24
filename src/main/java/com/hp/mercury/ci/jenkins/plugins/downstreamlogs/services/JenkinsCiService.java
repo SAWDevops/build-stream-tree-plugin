@@ -22,7 +22,7 @@ public class JenkinsCiService implements CiService {
     }
 
     @Override
-    public Run getBuildByNameAndNumber(String itemName, int buildNumber) {
+    public Run getBuildByNameAndNumber(String itemName, Integer buildNumber) {
         Job job = this.getJobByName(itemName);
         if(job!=null){
             return job.getBuildByNumber(buildNumber);
