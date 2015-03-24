@@ -1,11 +1,14 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 
+import hudson.model.Run;
+
 /**
  * Created by kleintid on 3/23/2015.
  */
 public interface CiService {
 
-    public <T> jenkins.model.Jenkins getCiInstance();
+    public jenkins.model.Jenkins getCiInstance();
 
-    public <T> hudson.model.Item getItemByFullName(String itemName, Class clazz);
+    public hudson.model.Job getJobByName(String itemName);
+    public Run getBuildByNameAndNumber(String itemName, int buildNumber);
 }

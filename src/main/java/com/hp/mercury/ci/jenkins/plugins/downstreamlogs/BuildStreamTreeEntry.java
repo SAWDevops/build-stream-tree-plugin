@@ -30,11 +30,7 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
 
         public Run getRun() {
             if (run == null) {
-                //TODO: remove casting to job
-                final Job job = (Job)ciService.getItemByFullName(jobName,Job.class);
-                if (job != null) {
-                    this.run = job.getBuildByNumber(buildNumber);
-                }
+                this.run = ciService.getBuildByNameAndNumber(jobName, buildNumber);
             }
             return run;
         }
