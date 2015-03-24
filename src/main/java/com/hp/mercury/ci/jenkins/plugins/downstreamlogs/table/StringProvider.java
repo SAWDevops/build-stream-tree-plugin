@@ -1,6 +1,5 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.table;
 
-import com.hp.commons.core.collection.CollectionUtils;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.Log;
 import hudson.Extension;
 import hudson.ExtensionPoint;
@@ -8,7 +7,6 @@ import hudson.Util;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
 import jenkins.model.Jenkins;
-import org.apache.commons.io.FileUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
@@ -25,10 +23,11 @@ import java.util.*;
  */
 public abstract class StringProvider implements Describable<StringProvider> {
 
-    public StringProvider() {}
+    public StringProvider() {
+    }
 
     public StringProviderDescriptor getDescriptor() {
-        return (StringProviderDescriptor)Jenkins.getInstance().getDescriptor(getClass());
+        return (StringProviderDescriptor) Jenkins.getInstance().getDescriptor(getClass());
     }
 
     public static abstract class StringProviderDescriptor extends Descriptor<StringProvider> implements ExtensionPoint {
@@ -85,7 +84,8 @@ public abstract class StringProvider implements Describable<StringProvider> {
     public static class NoneStringProvider extends StringProvider {
 
         @DataBoundConstructor
-        public NoneStringProvider() {}
+        public NoneStringProvider() {
+        }
 
         @Override
         public String toString() {
@@ -104,7 +104,7 @@ public abstract class StringProvider implements Describable<StringProvider> {
 
     public static class DefaultStringProvider extends StringProvider {
 
-        private static final String DEFAULTS_PATH = DefaultStringProvider.class.getName().replaceAll("[\\$\\.]","/") + "/defaults";
+        private static final String DEFAULTS_PATH = DefaultStringProvider.class.getName().replaceAll("[\\$\\.]", "/") + "/defaults";
 
         private String selectedDefaultName;
         private transient String selectedDeafultText;
@@ -154,8 +154,7 @@ public abstract class StringProvider implements Describable<StringProvider> {
             String text;
             try {
                 text = new Scanner(DefaultStringProvider.class.getClassLoader().getResourceAsStream(path)).useDelimiter("\\Z").next();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 text = e.getMessage();
                 Log.throwing("DefaultStringProvider", "getDefaultText", e);
             }
@@ -208,9 +207,7 @@ public abstract class StringProvider implements Describable<StringProvider> {
 
             try {
                 this.stringToProvide = Util.loadFile(new File(pathToFile));
-            }
-
-            catch (IOException e) {
+            } catch (IOException e) {
                 Log.warning("couldn't read file " + pathToFile);
                 Log.throwing(FileStringProvider.class.getName(), "FileStringProvider", e);
                 stringToProvide = "failed to read file " + pathToFile;

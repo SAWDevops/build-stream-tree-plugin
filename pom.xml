@@ -18,7 +18,7 @@
 
     <properties>
         <matrix.project.version>1.4</matrix.project.version>
-        <commons.core.version>1.565.3</commons.core.version>
+        <commons.core.version>1.509.1</commons.core.version>
         <email-ext.version>2.39</email-ext.version>
         <mailer.version>1.13</mailer.version>
         <token-macro.version>1.10</token-macro.version>
