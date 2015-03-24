@@ -440,7 +440,7 @@ public class DownstreamLogsUtils {
                     parsedBuild = fromProjectName(matcher, config, currentBuild, buildExecutionByProject);
                 } else {
 
-                    parsedBuild =  fromProjectNameAndBuildNumber(matcher, config, currentBuild, buildExecutionByProject);
+                    parsedBuild = fromProjectNameAndBuildNumber(matcher, config, currentBuild, buildExecutionByProject);
                 }
 
                 return parsedBuild;

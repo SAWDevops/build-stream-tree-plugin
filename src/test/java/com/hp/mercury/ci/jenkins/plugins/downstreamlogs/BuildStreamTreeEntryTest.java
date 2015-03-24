@@ -24,9 +24,9 @@ public class BuildStreamTreeEntryTest extends TestCase {
                 new BuildStreamTreeEntry.BuildEntry(ciService.getBuildByNameAndNumber(null, buildNumber));
         assert null == buildEntry.getJobName();
 
-        //3. legal job name and null build number
+        //3. legal job name and negative build number
         buildEntry =
-                new BuildStreamTreeEntry.BuildEntry(ciService.getBuildByNameAndNumber(testJobName, null));
+                new BuildStreamTreeEntry.BuildEntry(ciService.getBuildByNameAndNumber(testJobName, -1));
         assert testJobName.equals(buildEntry.getJobName());
 
 

@@ -9,6 +9,5 @@ public interface CiService {
 
     public jenkins.model.Jenkins getCiInstance();
 
-    public hudson.model.Job getJobByName(String itemName);
-    public Run getBuildByNameAndNumber(String itemName, Integer buildNumber);
+    public Run getBuildByNameAndNumber(String itemName, int buildNumber);
 }

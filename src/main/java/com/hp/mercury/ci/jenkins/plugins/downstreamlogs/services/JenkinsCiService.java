@@ -16,13 +16,12 @@ public class JenkinsCiService implements CiService {
         return Jenkins.getInstance();
     }
 
-    @Override
-    public Job getJobByName(String itemName) {
+    private Job getJobByName(String itemName) {
         return getCiInstance().getItemByFullName(itemName, Job.class);
     }
 
     @Override
-    public Run getBuildByNameAndNumber(String itemName, Integer buildNumber) {
+    public Run getBuildByNameAndNumber(String itemName, int buildNumber) {
         Job job = this.getJobByName(itemName);
         if(job!=null){
             return job.getBuildByNumber(buildNumber);

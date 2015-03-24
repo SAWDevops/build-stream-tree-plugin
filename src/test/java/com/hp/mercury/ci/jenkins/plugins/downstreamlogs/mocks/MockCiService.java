@@ -19,8 +19,7 @@ public class MockCiService implements CiService {
         return null;
     }
 
-    @Override
-    public Job getJobByName(String itemName) {
+    private Job getJobByName(String itemName) {
         Job job = Mockito.mock(Job.class);
         ItemGroup itemGroup = Mockito.mock(ItemGroup.class);
         Mockito.when(job.getParent()).thenReturn(itemGroup);
@@ -29,7 +28,7 @@ public class MockCiService implements CiService {
     }
 
     @Override
-    public Run getBuildByNameAndNumber(String itemName, Integer buildNumber) {
+    public Run getBuildByNameAndNumber(String itemName, int buildNumber) {
 
         ItemGroup itemGroup = Mockito.mock(ItemGroup.class);
         Mockito.when(itemGroup.getFullDisplayName()).thenReturn("");
@@ -40,9 +39,11 @@ public class MockCiService implements CiService {
         Mockito.when(parent.getFullDisplayName()).thenReturn(itemName);
 
         AbstractBuild build = Mockito.mock(AbstractBuild.class);
-        Mockito.when(build.getNumber()).thenReturn(buildNumber.intValue());
+        Mockito.when(build.getNumber()).thenReturn(buildNumber);
         Mockito.when(build.getParent()).thenReturn(parent);
         Mockito.when(build.getParent().getFullDisplayName()).thenReturn(itemName);
         return build;
     }
+
+
 }
