@@ -16,7 +16,7 @@ public class JenkinsCiService implements CiService {
         return Jenkins.getInstance();
     }
 
-    private Job getJobByName(String itemName) {
+    public Job getJobByName(String itemName) {
         return getCiInstance().getItemByFullName(itemName, Job.class);
     }
 

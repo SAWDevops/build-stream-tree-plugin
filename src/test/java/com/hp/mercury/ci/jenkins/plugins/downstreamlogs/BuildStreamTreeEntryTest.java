@@ -2,6 +2,7 @@ package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.mocks.MockCiService;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiService;
+import hudson.model.Job;
 import junit.framework.TestCase;
 
 import static org.junit.Assert.*;
@@ -49,6 +50,16 @@ public class BuildStreamTreeEntryTest extends TestCase {
         buildEntry =
                 new BuildStreamTreeEntry.BuildEntry(ciService.getBuildByNameAndNumber(testJobName, -1));
         assert buildNumber == buildEntry.getBuildNumber();
+    }
+
+    public void testGetJob() {
+        String testJobName = "myJob";
+        Job testJob = ciService.getJobByName(testJobName);
+
+        //1. legal job name and build number
+        BuildStreamTreeEntry.JobEntry jobEntry =
+                new BuildStreamTreeEntry.JobEntry(testJob);
+        assert testJob.equals(jobEntry.getJob());
     }
 
 }

@@ -2,10 +2,8 @@ package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiService;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.JenkinsCiService;
-import groovy.lang.Binding;
 import hudson.model.Job;
 import hudson.model.Run;
-import jenkins.model.Jenkins;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,9 +19,10 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
     @Deprecated
     transient private String template;
 
-    public static class BuildEntry extends BuildStreamTreeEntry{
+    protected CiService ciService;
 
-        private CiService ciService;
+    public static class BuildEntry extends BuildStreamTreeEntry {
+
         transient Run run;
         private final String jobName;
         private final int buildNumber;
@@ -63,37 +62,37 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
         }
 
         public int compareTo(BuildStreamTreeEntry other) {
-            if(!(other instanceof BuildEntry)){
+            if (!(other instanceof BuildEntry)) {
                 return 0;
             }
 
             Run thisRun = this.getRun();
             Run otherRun = ((BuildEntry) (other)).getRun();
-            if(thisRun==null || otherRun==null){
+            if (thisRun == null || otherRun == null) {
                 Log.warning("Tried to compare BuildStreamTreeEntry objects but at least one is null " +
-                        "thisRun: "  + thisRun + "otherRun: " + otherRun);
+                        "thisRun: " + thisRun + "otherRun: " + otherRun);
                 return 0;
             }
 
             long buildEntry1StartTime = thisRun.getStartTimeInMillis();
             long buildEntry2StartTime = otherRun.getStartTimeInMillis();
-            if(buildEntry1StartTime < buildEntry2StartTime){
+            if (buildEntry1StartTime < buildEntry2StartTime) {
                 return -1;
-            }else if(buildEntry1StartTime == buildEntry2StartTime){
+            } else if (buildEntry1StartTime == buildEntry2StartTime) {
                 //if start time and job name are the same, put the build with the lower number first
                 Job thisRunParent = thisRun.getParent();
                 Job otherRunParent = otherRun.getParent();
-                if(thisRunParent==null || otherRunParent==null){
+                if (thisRunParent == null || otherRunParent == null) {
                     Log.warning("Tried to compare BuildStreamTreeEntry parent objects but at least one is null " +
-                            "thisRun: "  + thisRunParent + "otherRun: " + otherRunParent);
+                            "thisRun: " + thisRunParent + "otherRun: " + otherRunParent);
                     return 0;
                 }
 
-                if(thisRunParent.getDisplayName().equals(otherRunParent.getDisplayName())){
-                    return Integer.compare(this.getBuildNumber(), ((BuildEntry)(other)).getBuildNumber());
+                if (thisRunParent.getDisplayName().equals(otherRunParent.getDisplayName())) {
+                    return Integer.compare(this.getBuildNumber(), ((BuildEntry) (other)).getBuildNumber());
                 }
                 return 0;
-            }else{
+            } else {
                 return 1;
             }
         }
@@ -106,13 +105,18 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
 
         public Job getJob() {
             if (job == null) {
-                job = Jenkins.getInstance().getItemByFullName(jobName,Job.class);
+                job = ciService.getJobByName(jobName);
             }
             return job;
         }
 
         public JobEntry(Job job) {
 
+            this(job, new JenkinsCiService());
+        }
+
+        public JobEntry(Job job, CiService ciService) {
+            this.ciService = ciService;
             this.job = job;
             this.jobName = job.getFullDisplayName();
         }

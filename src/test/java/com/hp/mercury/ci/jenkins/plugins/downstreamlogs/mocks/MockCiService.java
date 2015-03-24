@@ -19,10 +19,14 @@ public class MockCiService implements CiService {
         return null;
     }
 
-    private Job getJobByName(String itemName) {
+    public Job getJobByName(String itemName) {
+
+        ItemGroup parent = Mockito.mock(ItemGroup.class);
+        Mockito.when(parent.getFullDisplayName()).thenReturn("");
+
         Job job = Mockito.mock(Job.class);
-        ItemGroup itemGroup = Mockito.mock(ItemGroup.class);
-        Mockito.when(job.getParent()).thenReturn(itemGroup);
+        Mockito.when(job.getParent()).thenReturn(parent);
+        Mockito.when(parent.getDisplayName()).thenReturn("");
         Mockito.when(job.getFullDisplayName()).thenReturn(itemName);
         return job;
     }
