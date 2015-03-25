@@ -74,8 +74,8 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
                 return 0;
             }
 
-            long buildEntry1StartTime = thisRun.getStartTimeInMillis();
-            long buildEntry2StartTime = otherRun.getStartTimeInMillis();
+            long buildEntry1StartTime = ciService.getBuildStartTimeInMillis(thisRun);
+            long buildEntry2StartTime = ciService.getBuildStartTimeInMillis(otherRun);
             if (buildEntry1StartTime < buildEntry2StartTime) {
                 return -1;
             } else if (buildEntry1StartTime == buildEntry2StartTime) {

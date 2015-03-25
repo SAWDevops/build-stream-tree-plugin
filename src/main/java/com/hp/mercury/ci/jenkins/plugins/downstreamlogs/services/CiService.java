@@ -13,4 +13,6 @@ public interface CiService {
     public Run getBuildByNameAndNumber(String itemName, int buildNumber);
 
     public Job getJobByName(String jobName);
+
+    public long getBuildStartTimeInMillis(Run run);
 }

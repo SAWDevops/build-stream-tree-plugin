@@ -8,6 +8,8 @@ import hudson.model.Run;
 import jenkins.model.Jenkins;
 import org.mockito.Mockito;
 
+import java.util.GregorianCalendar;
+
 /**
  * Created by kleintid on 3/23/2015.
  */
@@ -29,6 +31,11 @@ public class MockCiService implements CiService {
         Mockito.when(parent.getDisplayName()).thenReturn("");
         Mockito.when(job.getFullDisplayName()).thenReturn(itemName);
         return job;
+    }
+
+    @Override
+    public long getBuildStartTimeInMillis(Run run) {
+        return new GregorianCalendar().getTimeInMillis();
     }
 
     @Override

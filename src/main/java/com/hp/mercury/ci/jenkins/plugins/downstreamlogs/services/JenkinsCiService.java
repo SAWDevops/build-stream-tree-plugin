@@ -21,6 +21,15 @@ public class JenkinsCiService implements CiService {
     }
 
     @Override
+    public long getBuildStartTimeInMillis(Run run) {
+        if(run!=null){
+            return run.getStartTimeInMillis();
+        }
+        Log.warning("Tried to get start time from a non existing Run object, returning -1");
+        return -1l;
+    }
+
+    @Override
     public Run getBuildByNameAndNumber(String itemName, int buildNumber) {
         Job job = this.getJobByName(itemName);
         if(job!=null){

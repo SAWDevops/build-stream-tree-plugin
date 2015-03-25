@@ -2,10 +2,17 @@ package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.mocks.MockCiService;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiService;
+import hudson.model.Build;
 import hudson.model.Job;
+import hudson.model.Run;
 import junit.framework.TestCase;
+import org.mockito.Mockito;
+
+import java.util.GregorianCalendar;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
 
 public class BuildStreamTreeEntryTest extends TestCase {
 
@@ -62,4 +69,34 @@ public class BuildStreamTreeEntryTest extends TestCase {
         assert testJob.equals(jobEntry.getJob());
     }
 
+
+    public void testCompareTo(){
+        String testJobName = "myJob";
+        int firstBuildNumber = 1;
+        int secondBuildNumber = 2;
+        long firstStartTime = 123456789;
+        long secondStartTime = 123456790;
+
+        Run firstRun = ciService.getBuildByNameAndNumber(testJobName, firstBuildNumber);
+        Run secondRun = ciService.getBuildByNameAndNumber(testJobName, secondBuildNumber);
+
+        assert firstRun.getStartTimeInMillis() == 0;
+
+        //1. 2 builds of the same job with same start time --> -1
+        BuildStreamTreeEntry.BuildEntry firstBuildEntry =
+                new BuildStreamTreeEntry.BuildEntry(firstRun);
+
+        BuildStreamTreeEntry.BuildEntry secondBuildEntry =
+                new BuildStreamTreeEntry.BuildEntry(secondRun);
+
+        assert firstBuildEntry.compareTo(secondBuildEntry) == -1;
+
+       
+
+        /*//TODO: those mocks fails since that method cannot be stubbed, need to figure out how to mock
+        //the get start time
+        Mockito.when(ciService.getBuildStartTimeInMillis(firstRun)).thenReturn(firstStartTime);
+        Mockito.when(ciService.getBuildStartTimeInMillis(secondRun)).thenReturn(secondStartTime);
+        */
+    }
 }
