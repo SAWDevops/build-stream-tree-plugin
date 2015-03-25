@@ -10,9 +10,8 @@ public interface CiService {
 
     public jenkins.model.Jenkins getCiInstance();
 
-    public Run getBuildByNameAndNumber(String itemName, int buildNumber);
+    public CiRun getBuildByNameAndNumber(String itemName, int buildNumber);
 
-    public Job getJobByName(String jobName);
+    public CiJob getJobByName(String jobName);
 
-    public long getBuildStartTimeInMillis(Run run);
 }

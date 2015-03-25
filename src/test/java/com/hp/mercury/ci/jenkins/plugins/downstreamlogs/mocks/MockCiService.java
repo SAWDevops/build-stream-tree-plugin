@@ -1,6 +1,9 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.mocks;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiJob;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiRun;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiService;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.JenkinsCiRun;
 import hudson.model.AbstractBuild;
 import hudson.model.ItemGroup;
 import hudson.model.Job;
@@ -21,25 +24,21 @@ public class MockCiService implements CiService {
         return null;
     }
 
-    public Job getJobByName(String itemName) {
+    public CiJob getJobByName(String itemName) {
 
         ItemGroup parent = Mockito.mock(ItemGroup.class);
         Mockito.when(parent.getFullDisplayName()).thenReturn("");
 
-        Job job = Mockito.mock(Job.class);
+        CiJob job = Mockito.mock(CiJob.class);
         Mockito.when(job.getParent()).thenReturn(parent);
         Mockito.when(parent.getDisplayName()).thenReturn("");
         Mockito.when(job.getFullDisplayName()).thenReturn(itemName);
         return job;
     }
 
-    @Override
-    public long getBuildStartTimeInMillis(Run run) {
-        return new GregorianCalendar().getTimeInMillis();
-    }
 
     @Override
-    public Run getBuildByNameAndNumber(String itemName, int buildNumber) {
+    public CiRun getBuildByNameAndNumber(String itemName, int buildNumber) {
 
         ItemGroup itemGroup = Mockito.mock(ItemGroup.class);
         Mockito.when(itemGroup.getFullDisplayName()).thenReturn("");
@@ -53,7 +52,7 @@ public class MockCiService implements CiService {
         Mockito.when(build.getNumber()).thenReturn(buildNumber);
         Mockito.when(build.getParent()).thenReturn(parent);
         Mockito.when(build.getParent().getFullDisplayName()).thenReturn(itemName);
-        return build;
+        return new JenkinsCiRun(build);
     }
 
 

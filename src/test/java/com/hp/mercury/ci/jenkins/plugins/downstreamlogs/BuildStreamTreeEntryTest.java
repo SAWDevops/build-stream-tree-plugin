@@ -1,6 +1,8 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.mocks.MockCiService;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiJob;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiRun;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiService;
 import hudson.model.Build;
 import hudson.model.Job;
@@ -61,11 +63,11 @@ public class BuildStreamTreeEntryTest extends TestCase {
 
     public void testGetJob() {
         String testJobName = "myJob";
-        Job testJob = ciService.getJobByName(testJobName);
+        CiJob testJob = ciService.getJobByName(testJobName);
 
         //1. legal job name and build number
         BuildStreamTreeEntry.JobEntry jobEntry =
-                new BuildStreamTreeEntry.JobEntry(testJob);
+                new BuildStreamTreeEntry.JobEntry(testJob, ciService);
         assert testJob.equals(jobEntry.getJob());
     }
 
@@ -77,8 +79,8 @@ public class BuildStreamTreeEntryTest extends TestCase {
         long firstStartTime = 123456789;
         long secondStartTime = 123456790;
 
-        Run firstRun = ciService.getBuildByNameAndNumber(testJobName, firstBuildNumber);
-        Run secondRun = ciService.getBuildByNameAndNumber(testJobName, secondBuildNumber);
+        CiRun firstRun = ciService.getBuildByNameAndNumber(testJobName, firstBuildNumber);
+        CiRun secondRun = ciService.getBuildByNameAndNumber(testJobName, secondBuildNumber);
 
         assert firstRun.getStartTimeInMillis() == 0;
 
@@ -91,7 +93,7 @@ public class BuildStreamTreeEntryTest extends TestCase {
 
         assert firstBuildEntry.compareTo(secondBuildEntry) == -1;
 
-       
+
 
         /*//TODO: those mocks fails since that method cannot be stubbed, need to figure out how to mock
         //the get start time

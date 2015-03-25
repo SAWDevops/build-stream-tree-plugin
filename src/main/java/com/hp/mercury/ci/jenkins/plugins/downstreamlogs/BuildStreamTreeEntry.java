@@ -1,7 +1,6 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
-import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiService;
-import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.JenkinsCiService;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.*;
 import hudson.model.Job;
 import hudson.model.Run;
 
@@ -23,11 +22,11 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
 
     public static class BuildEntry extends BuildStreamTreeEntry {
 
-        transient Run run;
+        transient CiRun run;
         private final String jobName;
         private final int buildNumber;
 
-        public Run getRun() {
+        public CiRun getRun() {
             if (run == null) {
                 this.run = ciService.getBuildByNameAndNumber(jobName, buildNumber);
             }
@@ -35,10 +34,10 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
         }
 
         public BuildEntry(Run run) {
-            this(run, new JenkinsCiService());
+            this(new JenkinsCiRun(run), new JenkinsCiService());
         }
 
-        public BuildEntry(Run run, CiService ciService) {
+        public BuildEntry(CiRun run, CiService ciService) {
             this.run = run;
             this.ciService = ciService;
             this.jobName = this.run.getParent().getFullDisplayName();
@@ -66,22 +65,22 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
                 return 0;
             }
 
-            Run thisRun = this.getRun();
-            Run otherRun = ((BuildEntry) (other)).getRun();
+            CiRun thisRun = this.getRun();
+            CiRun otherRun = ((BuildEntry) (other)).getRun();
             if (thisRun == null || otherRun == null) {
                 Log.warning("Tried to compare BuildStreamTreeEntry objects but at least one is null " +
                         "thisRun: " + thisRun + "otherRun: " + otherRun);
                 return 0;
             }
 
-            long buildEntry1StartTime = ciService.getBuildStartTimeInMillis(thisRun);
-            long buildEntry2StartTime = ciService.getBuildStartTimeInMillis(otherRun);
+            long buildEntry1StartTime = thisRun.getStartTimeInMillis();
+            long buildEntry2StartTime = otherRun.getStartTimeInMillis();
             if (buildEntry1StartTime < buildEntry2StartTime) {
                 return -1;
             } else if (buildEntry1StartTime == buildEntry2StartTime) {
                 //if start time and job name are the same, put the build with the lower number first
-                Job thisRunParent = thisRun.getParent();
-                Job otherRunParent = otherRun.getParent();
+                CiJob thisRunParent = thisRun.getParent();
+                CiJob otherRunParent = otherRun.getParent();
                 if (thisRunParent == null || otherRunParent == null) {
                     Log.warning("Tried to compare BuildStreamTreeEntry parent objects but at least one is null " +
                             "thisRun: " + thisRunParent + "otherRun: " + otherRunParent);
@@ -100,10 +99,10 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
 
     public static class JobEntry extends BuildStreamTreeEntry {
 
-        transient Job job;
+        transient CiJob job;
         private final String jobName;
 
-        public Job getJob() {
+        public CiJob getJob() {
             if (job == null) {
                 job = ciService.getJobByName(jobName);
             }
@@ -112,10 +111,10 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
 
         public JobEntry(Job job) {
 
-            this(job, new JenkinsCiService());
+            this(new JenkinsCiJob(job), new JenkinsCiService());
         }
 
-        public JobEntry(Job job, CiService ciService) {
+        public JobEntry(CiJob job, CiService ciService) {
             this.ciService = ciService;
             this.job = job;
             this.jobName = job.getFullDisplayName();
