@@ -1,5 +1,7 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiService;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.JenkinsCiService;
 import hudson.Extension;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
@@ -16,9 +18,10 @@ import java.io.PrintStream;
  * Time: 16:03
  * To change this template use File | Settings | File Templates.
  */
-//we want to run last, to make sure the log is complete before we exeecute...
+//we want to run last, to make sure the log is complete before we execute...
 @Extension(ordinal = Integer.MIN_VALUE + 10)
 public class DownstreamLogsCachingBuildListener extends RunListener<Run> {
+
 
     @Override
     public void onFinalized(Run run) {

@@ -4,6 +4,7 @@ import com.hp.commons.core.collection.CollectionUtils;
 import com.hp.commons.core.criteria.Criteria;
 import com.hp.commons.core.criteria.InstanceOfCriteria;
 import com.hp.commons.core.handler.Handler;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.*;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
@@ -97,77 +98,80 @@ public class DownstreamLogsUtils {
 
     public static Collection<BuildStreamTreeEntry> getDownstreamRuns(Run run) {
 
-        Log.debug("getting downstream runs of " + run.toString());
+        //TODO: refactor - where should I get the service from?
+        CiService ciService = new JenkinsCiService();
+        CiRun ciRun = new JenkinsCiRun(run);
+        Log.debug("getting downstream runs of " + ciRun.toString());
 
-        Job parent = null;
+        CiJob parent = null;
         //write explicitly instead of using ternary for different lines to appear in debug/exceptions.
-        final boolean isMatrixRun = run instanceof MatrixRun;
+        final boolean isMatrixRun = ciRun instanceof MatrixRun;
         if (isMatrixRun) {
-            final MatrixRun matrixRun = (MatrixRun) run;
+            final MatrixRun matrixRun = (MatrixRun) ciRun;
             final MatrixBuild parentBuild = matrixRun.getParentBuild();
             if (parentBuild != null) {
-                parent = parentBuild.getParent();
+                parent = new JenkinsCiJob(parentBuild.getParent());
             }
         } else {
-            parent = run.getParent();
+            parent = ciRun.getParent();
         }
 
         DownstreamLogsManualEmebedViaJobProperty property = (parent != null) ?
-                (DownstreamLogsManualEmebedViaJobProperty) parent.getProperty(DownstreamLogsManualEmebedViaJobProperty.class) :
+                (DownstreamLogsManualEmebedViaJobProperty) parent.getDownstreamLogsManualEmebedViaJobProperty() :
                 null;
 
         boolean cache = ((property != null) && (property.getOverrideGlobalConfig())) ?
                 (property.getCacheBuild()) :
                 DownstreamLogsAction.getDescriptorStatically().getCacheBuilds();
 
-        Log.debug("downstream of " + run + " should" + (cache ? " " : " not ") + "be retrieved from cache");
+        Log.debug("downstream of " + ciRun + " should" + (cache ? " " : " not ") + "be retrieved from cache");
 
         return (cache) ?
-                retrieveFromCache(run) :
-                calculateDownstreamBuilds(run);
+                retrieveFromCache(ciRun, ciService) :
+                calculateDownstreamBuilds(ciRun, ciService);
     }
 
-    private static List<BuildStreamTreeEntry> retrieveFromCache(Run run) {
+    private static List<BuildStreamTreeEntry> retrieveFromCache(CiRun ciRun, CiService ciService) {
 
-        Log.debug("retrieving " + run + " from cache");
+        Log.debug("retrieving " + ciRun + " from cache");
 
         List<BuildStreamTreeEntry> triggered = null;
 
         //don't cache while build is running...
-        if (run.isLogUpdated()) {
-            Log.debug("run is still being updated, not using cache.");
-            return calculateDownstreamBuilds(run);
+        if (ciRun.isLogUpdated()) {
+            Log.debug("ciRun is still being updated, not using cache.");
+            return calculateDownstreamBuilds(ciRun, ciService);
         }
 
-        DownstreamLogsCacheAction cache = run.getAction(DownstreamLogsCacheAction.class);
+        DownstreamLogsCacheAction cache = ciRun.getAction();
         if (cache == null) {
             //the value inside cache will be set in a moment because triggered = null;
-            Log.debug("initializing cache in " + run);
+            Log.debug("initializing cache in " + ciRun);
             cache = new DownstreamLogsCacheAction(null);
-            run.addAction(cache);
+            ciRun.addAction(cache);
         }
         //only use cache if regexes haven't changed - if there are new ones we need to recalculate...
         else if (cache.getParserConfigs().equals(DownstreamLogsAction.getDescriptorStatically().getParserConfigs())) {
 
-            Log.debug("checking if cache is valid for " + run + " with entries " + cache.getCachedEntries());
+            Log.debug("checking if cache is valid for " + ciRun + " with entries " + cache.getCachedEntries());
             //when updating entries its possible for a buildentry to become a string entry or somesuch, meaning we can't cache.
             //if that some entry won't be buildentry. so triggered will be null. so we'll reach the save condition...
             cache.updateEntries();
             //we only cache when we know the build, otherwise it might be that we're still building or waiting for something... a build in queue etc...
             if (cache.allEntriesGiveSpecificBuild()) {
 
-                Log.debug("cache is valid for " + run + " with " + cache.getCachedEntries());
+                Log.debug("cache is valid for " + ciRun + " with " + cache.getCachedEntries());
                 triggered = new ArrayList<BuildStreamTreeEntry>(cache.getCachedEntries());
             }
         }
 
         if (triggered == null) {
-            Log.debug("triggered jobs are uninstantiated in cache of " + run + ", calculating.");
-            triggered = calculateDownstreamBuilds(run);
+            Log.debug("triggered jobs are uninstantiated in cache of " + ciRun + ", calculating.");
+            triggered = calculateDownstreamBuilds(ciRun, ciService);
             cache.setCachedEntries(triggered);
 
             try {
-                run.save();
+                ciRun.save();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -176,17 +180,21 @@ public class DownstreamLogsUtils {
         return triggered;
     }
 
-    private static List<BuildStreamTreeEntry> calculateDownstreamBuilds(final Run run) {
+    private static List<BuildStreamTreeEntry> calculateDownstreamBuilds(final CiRun ciRun, CiService ciService) {
 
-        Log.debug("calculating downstream builds of " + run);
+
+        Log.debug("calculating downstream builds of " + ciRun);
 
         ArrayList<BuildStreamTreeEntry> triggered = new ArrayList<BuildStreamTreeEntry>();
 
-        if (run instanceof MatrixBuild) {
-            MatrixBuild mb = (MatrixBuild) run;
-            Log.debug("run is a matrix build with exact runs " + mb.getExactRuns());
+        if (ciRun instanceof MatrixBuild) {
+            MatrixBuild mb = (MatrixBuild) ciRun;
+            Log.debug("ciRun is a matrix build with exact runs " + mb.getExactRuns());
             for (Run internalMatrixRun : mb.getExactRuns()) {
-                triggered.add(new BuildStreamTreeEntry.BuildEntry(internalMatrixRun));
+                //TODO: create an interface for MatrixBuild with a
+                // method getExactRuns that would return List<MatrixCiRun>
+                JenkinsCiRun internalMatrixCiRun = new JenkinsCiRun(internalMatrixRun);
+                triggered.add(new BuildStreamTreeEntry.BuildEntry(internalMatrixCiRun));
             }
         }
 
@@ -194,7 +202,7 @@ public class DownstreamLogsUtils {
         Reader reader;
 
         try {
-            if (run != null && ((reader = run.getLogReader()) != null)) {
+            if (ciRun != null && ((reader = ciRun.getLogReader()) != null)) {
 
                 BufferedReader bufferedReader = new BufferedReader(reader);
 
@@ -206,7 +214,7 @@ public class DownstreamLogsUtils {
                     line = ConsoleNote.removeNotes(line);
 
                     Collection<BuildStreamTreeEntry> referencingBuilds =
-                            DownstreamLogsUtils.parseLineForTriggeredBuilds(line, run, buildExecutionByProject);
+                            DownstreamLogsUtils.parseLineForTriggeredBuilds(line, ciRun, buildExecutionByProject, ciService);
 
                     if (referencingBuilds != null) {
 
@@ -225,7 +233,7 @@ public class DownstreamLogsUtils {
         CollectionUtils.filter(triggered, new Criteria<BuildStreamTreeEntry>() {
             public boolean isSuccessful(BuildStreamTreeEntry buildStreamTreeEntry) {
                 if (buildStreamTreeEntry instanceof BuildStreamTreeEntry.BuildEntry) {
-                    return isUpstream(run, ((BuildStreamTreeEntry.BuildEntry) buildStreamTreeEntry).getRun());
+                    return isUpstream(ciRun, ((BuildStreamTreeEntry.BuildEntry) buildStreamTreeEntry).getRun());
                 }
                 //we have no new way to verify, but we're optimistic, so we'll say: ok!
                 else {
@@ -234,12 +242,12 @@ public class DownstreamLogsUtils {
             }
         });
 
-        Log.debug("downstream builds of " + run + " are " + triggered);
+        Log.debug("downstream builds of " + ciRun + " are " + triggered);
 
         return triggered;
     }
 
-    private static boolean isUpstream(Run upstream, Run downstream) {
+    private static boolean isUpstream(CiRun upstream, CiRun downstream) {
         for (Cause.UpstreamCause uc : getUpstreamCauses(downstream)) {
             if (uc.getUpstreamRun().equals(upstream)) {
                 return true;
@@ -252,12 +260,12 @@ public class DownstreamLogsUtils {
 
         Map<String, Integer> perBuildProjectExecutionMap = new HashMap<String, Integer>();
 
-        private String key(Run build, Job project) {
-            return build.getParent().getFullDisplayName() + "#" + build.number + "/" + project.getFullDisplayName();
+        private String key(CiRun build, CiJob project) {
+            return build.getParent().getFullDisplayName() + "#" + build.getNumber() + "/" + project.getFullDisplayName();
 
         }
 
-        public Integer getProjectExecutionsSetFromUpstreamBuild(Run build, Job project) {
+        public Integer getProjectExecutionsSetFromUpstreamBuild(CiRun build, CiJob project) {
             //we need a linked hash set because we may insert the same build multiple times,
             // and we need to know the order of insertions later on
             final String key = key(build, project);
@@ -266,14 +274,14 @@ public class DownstreamLogsUtils {
             return ret == null ? 0 : ret;
         }
 
-        public void addProjectBuildToProjectExecutionsFromUpstreamBuildSet(Run build, Job project) {
+        public void addProjectBuildToProjectExecutionsFromUpstreamBuildSet(CiRun build, CiJob project) {
             perBuildProjectExecutionMap.put(key(build, project), getProjectExecutionsSetFromUpstreamBuild(build, project) + 1);
         }
     }
 
-    public static Run getRunStartedByThisRun(
-            Job referencingProject,
-            Run buildToReference,
+    public static CiRun getRunStartedByThisRun(
+            CiJob referencingProject,
+            CiRun buildToReference,
             BuildExecutionByProjectCounter buildExecutionByProject) {
 
         Log.debug("searching for a build of " + referencingProject.getFullDisplayName() + " that was triggered by " +
@@ -309,7 +317,7 @@ public class DownstreamLogsUtils {
 
             //true, it makes more sense to check the other way round starting from the earliest possible and continuing onwards.
             //the jenkins API for this however seems to have horrible memory implications. see above comment.
-            for (Run referencingBuild = referencingProject.getLastBuild();
+            for (CiRun referencingBuild = referencingProject.getLastBuild();
                  referencingBuild != null && referencingBuild.getStartTimeInMillis() >= cutoffTime;
                  referencingBuild = referencingBuild.getPreviousBuild()) {
 
@@ -343,7 +351,7 @@ public class DownstreamLogsUtils {
         return null;
     }
 
-    private static List<Cause.UpstreamCause> getUpstreamCauses(Run run) {
+    private static List<Cause.UpstreamCause> getUpstreamCauses(CiRun run) {
 
         //the newly allocated list has causes, but we filter all instances in it to be upstreamcauses,
         //so de-facto is is an upstreamcause list, but this won't work with java's typing.
@@ -356,8 +364,9 @@ public class DownstreamLogsUtils {
     private static List<BuildStreamTreeEntry> fromProjectName(
             Matcher matcher,
             ProjectAndBuildRegexParserConfig config,
-            Run currentBuild,
-            BuildExecutionByProjectCounter buildExecutionByProject) {
+            CiRun currentBuild,
+            BuildExecutionByProjectCounter buildExecutionByProject,
+            CiService ciService) {
 
         String[] projectNames = matcher.group(config.getProjectIndex()).split(",");
 
@@ -366,10 +375,10 @@ public class DownstreamLogsUtils {
         for (String projectName : projectNames) {
 
             projectName = projectName.trim();
-            Job referencingProject = (Job) Jenkins.getInstance().getItemByFullName(projectName);
+            CiJob referencingProject = ciService.getJobByName(projectName);
             if (referencingProject != null) {
 
-                Run referencingBuild = getRunStartedByThisRun(referencingProject, currentBuild, buildExecutionByProject);
+                CiRun referencingBuild = getRunStartedByThisRun(referencingProject, currentBuild, buildExecutionByProject);
 
                 if (referencingBuild != null) {
                     buildExecutionByProject.addProjectBuildToProjectExecutionsFromUpstreamBuildSet(
@@ -391,8 +400,9 @@ public class DownstreamLogsUtils {
     private static List<BuildStreamTreeEntry> fromProjectNameAndBuildNumber(
             Matcher matcher,
             ProjectAndBuildRegexParserConfig config,
-            Run currentBuild,
-            BuildExecutionByProjectCounter buildExecutionByProject) {
+            CiRun currentBuild,
+            BuildExecutionByProjectCounter buildExecutionByProject,
+            CiService ciService) {
 
         String projectName = matcher.group(config.getProjectIndex());
         final String group = matcher.group(config.getBuildIndex());
@@ -404,9 +414,9 @@ public class DownstreamLogsUtils {
         }
 
         if (projectName != null && buildNumber != null) {
-            Job referencingProject = (Job) Jenkins.getInstance().getItemByFullName(projectName);
+            CiJob referencingProject = ciService.getJobByName(projectName);
             if (referencingProject != null) {
-                Run referencingBuild = referencingProject.getBuildByNumber(buildNumber);
+                CiRun referencingBuild = referencingProject.getBuildByNumber(buildNumber);
                 if (referencingBuild != null) {
                     buildExecutionByProject.addProjectBuildToProjectExecutionsFromUpstreamBuildSet(
                             currentBuild,
@@ -428,8 +438,9 @@ public class DownstreamLogsUtils {
 
     private static List<BuildStreamTreeEntry> parseLineForTriggeredBuilds(
             String line,
-            Run currentBuild,
-            BuildExecutionByProjectCounter buildExecutionByProject) {
+            CiRun currentBuild,
+            BuildExecutionByProjectCounter buildExecutionByProject,
+            CiService ciService) {
 
         for (ProjectAndBuildRegexParserConfig config : DownstreamLogsAction.getDescriptorStatically().getParserConfigs()) {
             Matcher matcher = config.getRegexPattern().matcher(line);
@@ -437,10 +448,10 @@ public class DownstreamLogsUtils {
 
                 List<BuildStreamTreeEntry> parsedBuild;
                 if (config.getRegexParseOrder() == ProjectAndBuildRegexParserConfig.RegexParseOrder.PROJECT_ONLY) {
-                    parsedBuild = fromProjectName(matcher, config, currentBuild, buildExecutionByProject);
+                    parsedBuild = fromProjectName(matcher, config, currentBuild, buildExecutionByProject, ciService);
                 } else {
 
-                    parsedBuild = fromProjectNameAndBuildNumber(matcher, config, currentBuild, buildExecutionByProject);
+                    parsedBuild = fromProjectNameAndBuildNumber(matcher, config, currentBuild, buildExecutionByProject, ciService);
                 }
 
                 return parsedBuild;
@@ -453,7 +464,8 @@ public class DownstreamLogsUtils {
 
     public static Collection<Run> getRoots(final Run build) {
 
-        Collection<Cause.UpstreamCause> upstreamCauses = getUpstreamCauses(build);
+        //TODO: Refactor - change build to CiRun
+        Collection<Cause.UpstreamCause> upstreamCauses = getUpstreamCauses(new JenkinsCiRun(build));
 
         //take runs from causes
         final List<Run> upstreamRuns = CollectionUtils.map(upstreamCauses, new Handler<Run, Cause.UpstreamCause>() {

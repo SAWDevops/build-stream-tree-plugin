@@ -33,8 +33,8 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
             return run;
         }
 
-        public BuildEntry(Run run) {
-            this(new JenkinsCiRun(run), new JenkinsCiService());
+        public BuildEntry(CiRun run) {
+            this(run, new JenkinsCiService());
         }
 
         public BuildEntry(CiRun run, CiService ciService) {
@@ -109,9 +109,9 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
             return job;
         }
 
-        public JobEntry(Job job) {
+        public JobEntry(CiJob job) {
 
-            this(new JenkinsCiJob(job), new JenkinsCiService());
+            this(job, new JenkinsCiService());
         }
 
         public JobEntry(CiJob job, CiService ciService) {

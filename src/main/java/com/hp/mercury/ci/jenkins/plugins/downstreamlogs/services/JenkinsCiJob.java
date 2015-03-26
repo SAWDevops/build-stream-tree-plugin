@@ -1,8 +1,10 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsManualEmebedViaJobProperty;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.Log;
 import hudson.model.ItemGroup;
 import hudson.model.Job;
+import hudson.model.JobProperty;
 
 /**
  * Created by kleintid on 3/25/2015.
@@ -57,5 +59,25 @@ public class JenkinsCiJob implements CiJob {
             Log.warning("Tried to get job's full display name from a null job, returning empty string");
             return "";
         }
+    }
+
+    @Override
+    public CiRun getLastBuild() {
+        if(job!=null){
+            return new JenkinsCiRun(job.getLastBuild());
+        }
+        else{
+            Log.warning("Tried to get last build from a null job, returning null");
+            return null;
+        }
+    }
+
+    @Override
+    public JobProperty getDownstreamLogsManualEmebedViaJobProperty(){
+        if(job!=null){
+            return job.getProperty(DownstreamLogsManualEmebedViaJobProperty.class);
+        }
+        Log.warning("Tried to get job property from a null job, returning null");
+        return null;
     }
 }
