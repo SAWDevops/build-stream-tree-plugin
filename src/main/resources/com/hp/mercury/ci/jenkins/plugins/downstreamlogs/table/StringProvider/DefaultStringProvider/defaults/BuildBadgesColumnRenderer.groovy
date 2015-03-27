@@ -55,7 +55,7 @@ class BuildBadgesColumnRenderer implements ColumnRenderer {
 
         if (!this.content.content.emailMode) {
 
-            context.setVariable("build", buildEntry.run)
+            context.setVariable("build", buildEntry.getInnerRun())
 
             /*
             copy paste from Functions initPageVariables
@@ -80,7 +80,7 @@ class BuildBadgesColumnRenderer implements ColumnRenderer {
             context.setVariable("resURL",rootURL+h.getResourcePath());
             context.setVariable("imagesURL",rootURL+h.getResourcePath()+"/images");
 
-            buildEntry.run.badgeActions.each { badge ->
+            buildEntry.getInnerRun().badgeActions.each { badge ->
                 context.setVariable("badge", badge)
                 //context.setVariable("rootURL", Jenkins.instance.rootUrl);
                 this.content.getStapler().include(it:badge, page:"badge.jelly")

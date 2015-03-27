@@ -208,11 +208,11 @@ public class ParametersDiffColumnRenderer implements ColumnRenderer {
 
     def calculateParameters(buildEntry) {
 
-        def currentParameters = buildEntry.run.getActions(ParametersAction.class)
+        def currentParameters = buildEntry.getInnerRun().getActions(ParametersAction.class)
 
         def parentBuildEntry = this.init.findTreeNodeForBuildEntry(buildEntry).parent?.value
         def parentParameters = parentBuildEntry instanceof BuildStreamTreeEntry.BuildEntry ?
-            parentBuildEntry.run?.getActions(ParametersAction.class):
+            parentbuildEntry.getInnerRun()?.getActions(ParametersAction.class):
             null
 
         return [currentParameters, parentParameters]

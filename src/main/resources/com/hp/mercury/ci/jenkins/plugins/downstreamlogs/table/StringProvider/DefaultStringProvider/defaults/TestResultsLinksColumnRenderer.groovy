@@ -33,9 +33,9 @@ class TestResultsLinksColumnRenderer implements ColumnRenderer {
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
 
-        def projectUrl = "$Jenkins.instance.rootUrl$buildEntry.run.parent.url"
-        def buildUrl = "$projectUrl/$buildEntry.run.number"
-        def testResults = buildEntry.run.testResultAction
+        def projectUrl = "${Jenkins.instance.rootUrl}${buildEntry.getInnerRun().parent.url}"
+        def buildUrl = "${projectUrl}/${buildEntry.getInnerRun().number}"
+        def testResults = buildEntry.getInnerRun().testResultAction
         def testResultsUrl = "$buildUrl/${testResults?.urlName}"
 
         if (testResults == null) {

@@ -36,7 +36,7 @@ class ETAColumnRenderer implements ColumnRenderer {
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
 
-        def run = buildEntry.run
+        def run = buildEntry.getInnerRun()
 
         if (run.isBuilding()) {
             def estimated = run.getEstimatedDuration()

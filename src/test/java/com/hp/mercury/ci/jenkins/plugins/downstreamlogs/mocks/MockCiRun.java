@@ -4,6 +4,7 @@ import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsCacheActio
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiJob;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiRun;
 import hudson.model.Cause;
+import hudson.model.Run;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -71,7 +72,14 @@ public class MockCiRun implements CiRun {
 
     }
 
-    public void setStartTimeInMillis(long startTimeInMillis) {
-        this.startTimeInMillis = startTimeInMillis;
+    @Override
+    public Cause.UpstreamCause getUpstreamCause() {
+        return null;
     }
+
+    @Override
+    public Run getInnerRun() {
+        return null;
+    }
+
 }

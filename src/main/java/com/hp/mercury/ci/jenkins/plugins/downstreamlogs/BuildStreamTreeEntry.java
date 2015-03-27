@@ -26,23 +26,43 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
         private final String jobName;
         private final int buildNumber;
 
+        //TODO: Refactor - how did CiService was null before?
         public CiRun getRun() {
+            return getRun(new JenkinsCiService());
+        }
+
+        public CiRun getRun(CiService ciService) {
             if (run == null) {
                 this.run = ciService.getBuildByNameAndNumber(jobName, buildNumber);
             }
             return run;
         }
 
-        public BuildEntry(CiRun run) {
-            this(run, new JenkinsCiService());
+
+            //TODO: Refactor - remove when Run is removed from the plugin's code
+        public BuildEntry(Run run) {
+            this(new JenkinsCiRun(run));
         }
 
-        public BuildEntry(CiRun run, CiService ciService) {
-            this.run = run;
+        public BuildEntry(CiRun ciRun) {
+            this(ciRun, new JenkinsCiService());
+        }
+
+
+        public BuildEntry(CiRun ciRun, CiService ciService) {
+            this.run = ciRun;
             this.ciService = ciService;
             this.jobName = this.run.getParent().getFullDisplayName();
             this.buildNumber = this.run.getNumber();
         }
+
+        public Run getInnerRun(){
+            if(run!=null){
+                return run.getInnerRun();
+            }
+            return null;
+        }
+
 
         @Override
         public String toString() {

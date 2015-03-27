@@ -24,7 +24,7 @@ class SummaryColumnRenderer implements ColumnRenderer {
 
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
-        l.raw(buildEntry.run.buildStatusSummary.message)
+        l.raw(buildEntry.getInnerRun().buildStatusSummary.message)
     }
 
     @Override

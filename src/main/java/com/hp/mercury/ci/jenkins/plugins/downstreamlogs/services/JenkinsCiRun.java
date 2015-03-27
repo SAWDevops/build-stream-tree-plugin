@@ -115,6 +115,24 @@ public class JenkinsCiRun implements CiRun {
         }
     }
 
+    @Override
+    public Cause.UpstreamCause getUpstreamCause() {
+        if(run!=null){
+            return (Cause.UpstreamCause)run.getCause(Cause.UpstreamCause.class);
+        }
+        Log.warning("Tried to get UpstreamCause from a null run, returning null");
+        return null;
+    }
+
+    @Override
+    public Run getInnerRun() {
+        if(run!=null){
+            return run;
+        }
+        Log.warning("Tried to get Inner run from a null run, returning null");
+        return null;
+    }
+
     public Run getRun() {
         return run;
     }

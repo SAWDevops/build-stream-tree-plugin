@@ -12,9 +12,7 @@ import hudson.console.ConsoleNote;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixRun;
 import hudson.model.Cause;
-import hudson.model.Job;
 import hudson.model.Run;
-import jenkins.model.Jenkins;
 import org.apache.commons.jelly.XMLOutput;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
@@ -96,11 +94,10 @@ public class DownstreamLogsUtils {
 
     private static Map<String, Class> compiledGroovyCache = new HashMap<String, Class>();
 
-    public static Collection<BuildStreamTreeEntry> getDownstreamRuns(Run run) {
+    public static Collection<BuildStreamTreeEntry> getDownstreamRuns(CiRun ciRun) {
 
         //TODO: refactor - where should I get the service from?
         CiService ciService = new JenkinsCiService();
-        CiRun ciRun = new JenkinsCiRun(run);
         Log.debug("getting downstream runs of " + ciRun.toString());
 
         CiJob parent = null;
@@ -191,7 +188,7 @@ public class DownstreamLogsUtils {
             MatrixBuild mb = (MatrixBuild) ciRun;
             Log.debug("ciRun is a matrix build with exact runs " + mb.getExactRuns());
             for (Run internalMatrixRun : mb.getExactRuns()) {
-                //TODO: create an interface for MatrixBuild with a
+                //TODO: Refactor - create an interface for MatrixBuild with a
                 // method getExactRuns that would return List<MatrixCiRun>
                 JenkinsCiRun internalMatrixCiRun = new JenkinsCiRun(internalMatrixRun);
                 triggered.add(new BuildStreamTreeEntry.BuildEntry(internalMatrixCiRun));
@@ -462,24 +459,25 @@ public class DownstreamLogsUtils {
     }
 
 
-    public static Collection<Run> getRoots(final Run build) {
+    public static Collection<CiRun> getRoots(final CiRun build) {
 
         //TODO: Refactor - change build to CiRun
-        Collection<Cause.UpstreamCause> upstreamCauses = getUpstreamCauses(new JenkinsCiRun(build));
+        Collection<Cause.UpstreamCause> upstreamCauses = getUpstreamCauses(build);
 
         //take runs from causes
-        final List<Run> upstreamRuns = CollectionUtils.map(upstreamCauses, new Handler<Run, Cause.UpstreamCause>() {
+        final List<CiRun> upstreamRuns = CollectionUtils.map(upstreamCauses, new Handler<CiRun, Cause.UpstreamCause>() {
 
-            public Run apply(Cause.UpstreamCause upstreamCause) {
-                return upstreamCause.getUpstreamRun();
+            public CiRun apply(Cause.UpstreamCause upstreamCause) {
+                //TODO: Refactor - Wrap Upstream cause and return CiRun
+                return new JenkinsCiRun(upstreamCause.getUpstreamRun());
             }
         });
 
         //if someone uses the "rebuild" plugin the upstream build can belong to a different build stream, so we validate that it really references our build...
-        CollectionUtils.filter(upstreamRuns, new Criteria<Run>() {
-            public boolean isSuccessful(Run run) {
+        CollectionUtils.filter(upstreamRuns, new Criteria<CiRun>() {
+            public boolean isSuccessful(CiRun ciRun) {
                 //check for null, maybe that build has been removed...?
-                return run != null && isDownstream(run, build);
+                return ciRun != null && isDownstream(ciRun, build);
             }
         });
 
@@ -491,15 +489,15 @@ public class DownstreamLogsUtils {
         //if we have upstreams, we need to find their roots recursively, and return the aggregation of the results: all the combined roots
         //of all the upstream jobs.
         else {
-            Collection<Run> upstreamRoots = new HashSet<Run>();
-            for (Run upstreamRun : upstreamRuns) {
+            Collection<CiRun> upstreamRoots = new HashSet<CiRun>();
+            for (CiRun upstreamRun : upstreamRuns) {
                 upstreamRoots.addAll(getRoots(upstreamRun));
             }
             return upstreamRoots;
         }
     }
 
-    public static boolean isDownstream(Run parent, Run child) {
+    public static boolean isDownstream(CiRun parent, CiRun child) {
         final Collection<BuildStreamTreeEntry> downstreamRuns = getDownstreamRuns(parent);
 
         for (BuildStreamTreeEntry e : downstreamRuns) {

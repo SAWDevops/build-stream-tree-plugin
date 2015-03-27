@@ -1,10 +1,7 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsCacheAction;
-import hudson.model.Action;
-import hudson.model.ItemGroup;
-import hudson.model.Cause;
-import hudson.model.Job;
+import hudson.model.*;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -34,4 +31,9 @@ public interface CiRun {
     public void addAction(DownstreamLogsCacheAction action);
 
     public void save() throws IOException;
+
+    public Cause.UpstreamCause getUpstreamCause();
+
+    public Run getInnerRun();
+
 }

@@ -33,8 +33,8 @@ class ConsoleLinksColumnRenderer implements ColumnRenderer {
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
 
-        def projectUrl = "$Jenkins.instance.rootUrl$buildEntry.run.parent.url"
-        def buildUrl = "$projectUrl/$buildEntry.run.number"
+        def projectUrl = "${Jenkins.instance.rootUrl}${buildEntry.getInnerRun().parent.url}"
+        def buildUrl = "${projectUrl}/${buildEntry.getInnerRun().number}"
         def consoleUrl = "$buildUrl/console"
 
         l.a(href: consoleUrl) {

@@ -1,12 +1,9 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsSideMenuLink
 
-import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.BuildStreamTreeEntry
-import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsAction
-import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.JenkinsLikeXmlHelper
-import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.Log
-import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsUtils
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.*
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiRun
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.JenkinsCiRun
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.table.Table
-import hudson.model.Cause
 import jenkins.model.Jenkins
 import org.kohsuke.stapler.Stapler
 
@@ -15,50 +12,49 @@ l = new JenkinsLikeXmlHelper(output)
 def void render(buildEntry) {
 
 // we display all rows here, the filtering is done on the tree
-l.tr() {
-    cols.eachWithIndex { col, i ->
+    l.tr() {
+        cols.eachWithIndex { col, i ->
 
-        def column = tableConf.columnExtenders[i].column
-        def display = true
-        try {
-            //TODO build entry filters don't get access to init object?
-            display = column.buildEntryFilter.display(buildEntry)
-        }
-        catch (Exception e) {
-            Log.warning("failed to execute filter for $column.header: $e.message")
-            Log.throwing (
-                    "/com/hp/mercury/ci/jenkins/plugins/downstreamlogs/DownstreamLogsSideMenuLink/content.groovy",
-                    "render",
-                    e)
-        }
+            def column = tableConf.columnExtenders[i].column
+            def display = true
+            try {
+                //TODO build entry filters don't get access to init object?
+                display = column.buildEntryFilter.display(buildEntry)
+            }
+            catch (Exception e) {
+                Log.warning("failed to execute filter for $column.header: $e.message")
+                Log.throwing(
+                        "/com/hp/mercury/ci/jenkins/plugins/downstreamlogs/DownstreamLogsSideMenuLink/content.groovy",
+                        "render",
+                        e)
+            }
 
-        try {
-            if (display) {
-                def cellMetadata = col.metaClass.respondsTo(col, "cellMetadata", BuildStreamTreeEntry) ?
-                    col.cellMetadata(buildEntry) : Collections.emptyMap();
-                l.td(cellMetadata) {
-                    col.render(l, buildEntry)
+            try {
+                if (display) {
+                    def cellMetadata = col.metaClass.respondsTo(col, "cellMetadata", BuildStreamTreeEntry) ?
+                            col.cellMetadata(buildEntry) : Collections.emptyMap();
+                    l.td(cellMetadata) {
+                        col.render(l, buildEntry)
+                    }
+                } else {
+                    l.td { l.text(" ") }
                 }
             }
-            else {
-                l.td{l.text(" ")}
-            }
-        }
-        catch (Exception e) {
-            //show the error in the table
-            l.td {
-                l.text(e.message)
+            catch (Exception e) {
+                //show the error in the table
+                l.td {
+                    l.text(e.message)
+                }
+
+                //log the exception details
+                Log.throwing(
+                        "/com/hp/mercury/ci/jenkins/plugins/downstreamlogs/DownstreamLogsSideMenuLink/content.groovy",
+                        "render",
+                        e)
             }
 
-            //log the exception details
-            Log.throwing (
-                    "/com/hp/mercury/ci/jenkins/plugins/downstreamlogs/DownstreamLogsSideMenuLink/content.groovy",
-                    "render",
-                    e)
         }
-
     }
-}
 }
 
 
@@ -74,7 +70,7 @@ def recursiveRender(node) {
 }
 
 def renderTree() {
-    l.div(class:"downstream-logs") {
+    l.div(class: "downstream-logs") {
 
         l.h1("Build Stream Tree")
         ////////////////////////////////////////////////////////
@@ -133,11 +129,11 @@ def renderTree() {
                 """)
             }
 
-            l.table(class:"pane bigtable") {
+            l.table(class: "pane bigtable") {
                 l.tr() {
                     l.th() {
                         l.text("select build-stream-tree layout ")
-                        l.select(onchange:"switchBuildStreamTreeLayout(this.options[this.selectedIndex].value)") {
+                        l.select(onchange: "switchBuildStreamTreeLayout(this.options[this.selectedIndex].value)") {
                             DownstreamLogsAction.getDescriptorStatically().guiConfigurationTables.each { guiConfigTable ->
                                 def optionAttributes = [value: guiConfigTable.name]
                                 if (init.content.tableConf.name.equals(guiConfigTable.name)) {
@@ -175,7 +171,7 @@ def renderTree() {
             tableConf.getAdditionalTopLayoutFactory().newInstance(init)
         }
 
-        l.table(id:"$Table.TABLE_HTML_ID", style:"margin-top:0px; border-top: none;", class:"pane bigtable sortable") {
+        l.table(id: "$Table.TABLE_HTML_ID", style: "margin-top:0px; border-top: none;", class: "pane bigtable sortable") {
 
             l.tr() {
                 tableConf.columnExtenders.each { colExt ->
@@ -247,7 +243,7 @@ def shouldAddToTree(be) {
     catch (Exception e) {
         displayRow = true;
         Log.warning("failed to evaluate row filter!")
-        Log.throwing (
+        Log.throwing(
                 "/com/hp/mercury/ci/jenkins/plugins/downstreamlogs/DownstreamLogsSideMenuLink/content.groovy",
                 "render",
                 e)
@@ -267,6 +263,7 @@ well, sometimes we have a string-entry parent that contributes child nodes, so w
 TreeNodes where we know we may have to modify things (namely indices) if there are rowFilters, and if so update just the indices.
 
  */
+
 def void recursiveBuildTree(ListIterator<TreeNode> listIterator) {
 
     def index = 0
@@ -285,8 +282,7 @@ def void recursiveBuildTree(ListIterator<TreeNode> listIterator) {
             }
             //child elements can also be set not by buildentries, but string entries in createRootNodes
             recursiveBuildTree(partiallyInstantiatedNode.children.listIterator())
-        }
-        else {
+        } else {
 
             listIterator.remove()
 
@@ -337,7 +333,7 @@ def List<TreeNode> createRootNodes(List<BuildStreamTreeEntry.BuildEntry> bes) {
 
         def node
 
-        def upstreamCause = (Cause.UpstreamCause) be.run.getCause(Cause.UpstreamCause.class)
+        def upstreamCause = be.run.getUpstreamCause()
 
         //if there's an upstream cause it's either cause the run doesn't exist, or because it's not really ours (faked by rebuild plugin for example)
         if (upstreamCause != null &&
@@ -345,13 +341,12 @@ def List<TreeNode> createRootNodes(List<BuildStreamTreeEntry.BuildEntry> bes) {
                 // so if it is null it means this is the use case where we display partial information because the upstream run is deleted,
                 // and if it's not null - then there's some other reason why this isn't a root, for example, rebuild plugin -
                 // and then we don't display anything.
-                upstreamCause.getUpstreamRun() == null)  {
+                upstreamCause.getUpstreamRun() == null) {
 
             def replacingRoot = new BuildStreamTreeEntry.StringEntry("$upstreamCause.upstreamProject #$upstreamCause.upstreamBuild")
             node = createTreeNode(replacingRoot, null, 1, index)
             node.addChild(be)
-        }
-        else {
+        } else {
             node = createTreeNode(be, null, 1, index)
         }
 
@@ -395,15 +390,16 @@ def userSpecificLayout() {
         //do our best to remember current user choice, if logged in
         try {
             descriptor.setUserGuiTableName(Jenkins.instance.me, requestTableName)
-        } catch(Exception e) {}
+        } catch (Exception e) {
+        }
         return specifiedTableName = requestTableName;
-    }
-    else {
+    } else {
         def userChoice;
         //
         try {
             userChoice = descriptor.getUserGuiTableName(Jenkins.instance.me)
-        } catch(Exception e) {}
+        } catch (Exception e) {
+        }
         if (userChoice != null) {
 
             return specifiedTableName = userChoice
@@ -424,12 +420,12 @@ def renderTreeForBuild(build) {
     //this may be defined externally, for example, via DownstreamLogsEmailContent
     //if not, check the global email table
     def specifiedTableName =
-        //if tableName is specified in binding (like when specifying via $BUILD_STREAM_TREE)
-        this.binding.variables.get("tableName") ?:
-        //or if it's an email, use default email
-            (emailMode ?
-                (descriptor.getEmailTable() ?: tables.get(0).name) :
-                userSpecificLayout())
+            //if tableName is specified in binding (like when specifying via $BUILD_STREAM_TREE)
+            this.binding.variables.get("tableName") ?:
+                    //or if it's an email, use default email
+                    (emailMode ?
+                            (descriptor.getEmailTable() ?: tables.get(0).name) :
+                            userSpecificLayout())
 
     //if there's a specified value try to use it
     def tableConfiguration = tables.find { currentTableConfig -> currentTableConfig.name.equals(specifiedTableName) }
@@ -452,7 +448,10 @@ def renderTreeForBuild(build) {
 }
 
 
-try { renderTreeForBuild(my.build) }
+try {
+    //TODO: Refactor - use CiRun
+    renderTreeForBuild(new JenkinsCiRun(my.build))
+}
 catch (Exception e) {
     Log.warning("failed to display build-stream-tree for $my.build")
     Log.throwing("content.groovy", "", e)

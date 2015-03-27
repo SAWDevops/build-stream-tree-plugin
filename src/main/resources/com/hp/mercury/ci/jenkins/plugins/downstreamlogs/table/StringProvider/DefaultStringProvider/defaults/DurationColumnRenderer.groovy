@@ -28,7 +28,7 @@ class DurationColumnRenderer implements ColumnRenderer {
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
 
-        l.text(buildEntry.run.getDurationString())
+        l.text(buildEntry.getInnerRun().getDurationString())
     }
 
     @Override

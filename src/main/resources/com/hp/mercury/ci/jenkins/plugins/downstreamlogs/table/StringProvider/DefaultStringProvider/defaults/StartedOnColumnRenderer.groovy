@@ -24,7 +24,7 @@ class StartedOnColumnRenderer implements ColumnRenderer {
 
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
-        l.text(buildEntry.run.getTimestampString() + " ago")
+        l.text(buildEntry.getInnerRun().getTimestampString() + " ago")
     }
 
     @Override

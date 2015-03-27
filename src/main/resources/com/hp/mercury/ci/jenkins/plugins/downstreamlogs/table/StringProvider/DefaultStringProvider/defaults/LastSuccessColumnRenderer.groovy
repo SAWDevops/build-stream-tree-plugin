@@ -38,7 +38,7 @@ class LastSuccessColumnRenderer implements ColumnRenderer {
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
 
-        def build = buildEntry.run.parent.lastSuccessfulBuild
+        def build = buildEntry.getInnerRun().parent.lastSuccessfulBuild
 
         renderNullSafe(build, l)
     }

@@ -1,6 +1,8 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiRun;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiService;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.JenkinsCiRun;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.JenkinsCiService;
 import hudson.Extension;
 import hudson.matrix.MatrixRun;
@@ -34,7 +36,8 @@ public class DownstreamLogsCachingBuildListener extends RunListener<Run> {
                 DownstreamLogsAction.getDescriptorStatically().getCacheBuilds();
         if (cache) {
             Log.debug("Starting caching downstream builds for " + run.getFullDisplayName());
-            DownstreamLogsUtils.getDownstreamRuns(run);
+
+            DownstreamLogsUtils.getDownstreamRuns(new JenkinsCiRun(run));
             Log.debug("Done caching downstream builds for " + run.getFullDisplayName());
         }
 
