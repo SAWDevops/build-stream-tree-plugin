@@ -143,4 +143,17 @@ public class JenkinsCiRun implements CiRun{
     public Run getRun() {
         return run;
     }
+
+    @Override
+    public boolean equals(Object o){
+        if(run!=null){
+            if(o instanceof Run){
+                return run.equals((Run)o);
+            }
+            else if(o instanceof JenkinsCiRun){
+                return run.equals(((JenkinsCiRun)o).getRun());
+            }
+        }
+        return false;
+    }
 }
