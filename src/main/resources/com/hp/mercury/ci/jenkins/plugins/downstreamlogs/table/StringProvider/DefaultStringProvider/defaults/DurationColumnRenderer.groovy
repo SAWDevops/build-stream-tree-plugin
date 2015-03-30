@@ -16,8 +16,8 @@ class DurationColumnRenderer implements ColumnRenderer {
     Map cellMetadata(BuildStreamTreeEntry entry) {
         if (entry instanceof BuildStreamTreeEntry.BuildEntry) {
             def duration = entry.run.isBuilding() ?
-                (System.currentTimeMillis() - entry.run.getTimeInMillis()) :
-                entry.run.duration
+                (System.currentTimeMillis() - entry.run.details.timeInMillis) :
+                entry.run.details.duration
             return [data: duration]
         }
 
@@ -28,7 +28,7 @@ class DurationColumnRenderer implements ColumnRenderer {
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
 
-        l.text(buildEntry.getInnerRun().getDurationString())
+        l.text(buildEntry.run.details.getDurationString())
     }
 
     @Override

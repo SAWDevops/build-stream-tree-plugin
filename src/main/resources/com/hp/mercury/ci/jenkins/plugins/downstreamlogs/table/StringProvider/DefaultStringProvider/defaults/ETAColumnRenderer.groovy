@@ -21,7 +21,7 @@ class ETAColumnRenderer implements ColumnRenderer {
 
             if (run.isBuilding()) {
                 def estimated = run.getEstimatedDuration()
-                def duration = System.currentTimeMillis() - run.getTimeInMillis()
+                def duration = System.currentTimeMillis() - run.details.timeInMillis
                 def eta = estimated - duration
                 return [data:eta]
             }
@@ -36,11 +36,11 @@ class ETAColumnRenderer implements ColumnRenderer {
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
 
-        def run = buildEntry.getInnerRun()
+        def run = buildEntry.run
 
         if (run.isBuilding()) {
             def estimated = run.getEstimatedDuration()
-            def duration = System.currentTimeMillis() - run.getTimeInMillis()
+            def duration = System.currentTimeMillis() - run.details.timeInMillis
             def eta = estimated - duration
 
             l.raw("${Util.getTimeSpanString(Math.abs(eta))} ${eta < 0 ? " overdue" : ""}")

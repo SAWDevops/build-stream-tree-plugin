@@ -1,18 +1,21 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DisplayDetails;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsCacheAction;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.Log;
 import hudson.model.Cause;
+import hudson.model.ParametersAction;
 import hudson.model.Run;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by kleintid on 3/25/2015.
  */
-public class JenkinsCiRun implements CiRun {
+public class JenkinsCiRun implements CiRun{
 
     private Run run;
 
@@ -52,11 +55,12 @@ public class JenkinsCiRun implements CiRun {
 
     @Override
     public List<Cause> getCauses() {
+        List<Cause> causes = new ArrayList<Cause>(0);
         if (run != null) {
             return run.getCauses();
         } else {
             Log.warning("Tried to get run's Causes from a null run, returning null");
-            return null;
+            return causes;
         }
     }
 
@@ -124,13 +128,16 @@ public class JenkinsCiRun implements CiRun {
         return null;
     }
 
-    @Override
-    public Run getInnerRun() {
-        if(run!=null){
-            return run;
+    public DisplayDetails getDetails() {
+        return new DisplayDetails(run);
+    }
+
+    public boolean isBuilding(){
+        if (run != null) {
+            return run.isBuilding();
         }
-        Log.warning("Tried to get Inner run from a null run, returning null");
-        return null;
+        Log.warning("Tried to check is building a null run, returning null");
+        return false;
     }
 
     public Run getRun() {

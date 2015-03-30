@@ -1,5 +1,6 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DisplayDetails;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsCacheAction;
 import hudson.model.*;
 
@@ -34,6 +35,9 @@ public interface CiRun {
 
     public Cause.UpstreamCause getUpstreamCause();
 
-    public Run getInnerRun();
+    public DisplayDetails getDetails();
+
+    public boolean isBuilding();
+
 
 }

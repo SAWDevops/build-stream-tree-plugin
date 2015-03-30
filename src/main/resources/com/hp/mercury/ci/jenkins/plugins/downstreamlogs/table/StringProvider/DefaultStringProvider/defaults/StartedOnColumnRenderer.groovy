@@ -16,7 +16,7 @@ class StartedOnColumnRenderer implements ColumnRenderer {
     Map cellMetadata(BuildStreamTreeEntry entry) {
 
         if (entry instanceof BuildStreamTreeEntry.BuildEntry) {
-            return [data: entry.run.timestamp.getTimeInMillis()]
+            return [data: entry.run.details.timestamp.getTimeInMillis()]
         }
 
         return [data:0]
@@ -24,7 +24,7 @@ class StartedOnColumnRenderer implements ColumnRenderer {
 
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
-        l.text(buildEntry.getInnerRun().getTimestampString() + " ago")
+        l.text(buildEntry.run.details.getTimestampString() + " ago")
     }
 
     @Override

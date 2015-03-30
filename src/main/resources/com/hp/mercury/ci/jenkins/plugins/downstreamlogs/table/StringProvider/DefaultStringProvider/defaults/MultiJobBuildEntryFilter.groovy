@@ -7,7 +7,7 @@ public class MultiJobBuildEntryFilter implements BuildEntryFilter {
 
     @Override
     public Boolean display(BuildStreamTreeEntry.BuildEntry e) {
-        return !e.run.parent.class.name.toLowerCase().contains("multijob")
+        return !e.run.details.parent.class.name.toLowerCase().contains("multijob")
     }
 
     @Override

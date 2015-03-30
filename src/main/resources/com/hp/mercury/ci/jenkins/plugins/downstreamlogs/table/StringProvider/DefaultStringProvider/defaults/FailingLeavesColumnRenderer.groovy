@@ -25,7 +25,7 @@ public class FailingLeavesColumnRenderer implements ColumnRenderer {
         def buildEntry = node.value
 
         if (buildEntry instanceof BuildStreamTreeEntry.BuildEntry) {
-            def result = buildEntry.getInnerRun().result
+            def result = buildEntry.run.details.result
             //note, if there are no children then children.any is false always, so i'm source of problem is true
             //also, if we just do any, it stops after the first match and stops scanning for problems...
             def problemNotInherited = !node.children.collect { child -> findProblems(child) }.any{it}
@@ -33,7 +33,7 @@ public class FailingLeavesColumnRenderer implements ColumnRenderer {
             if (problemNotInherited && inProblem) {
 
                 //run and buildEntry don't implement equals and hashcode, but we can use the string rep of a run as a uid
-                problems.add(buildEntry.getInnerRun().toString())
+                problems.add(buildEntry.run.toString())
             }
             return inProblem
         }
@@ -64,7 +64,7 @@ public class FailingLeavesColumnRenderer implements ColumnRenderer {
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
 
-        def run = buildEntry.getInnerRun()
+        def run = buildEntry.run
         //run and buildEntry don't implement equals and hashcode, but we can use the string rep of a run as a uid
         if (run.result != null && problems.contains(run.toString())) {
 

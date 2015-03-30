@@ -101,17 +101,17 @@ public class TreeColumnRenderer implements ColumnRenderer {
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
         render (l, buildEntry) {
 
-            def projectUrl = "${Jenkins.instance.rootUrl}${buildEntry.getInnerRun().parent.url}"
-            def buildUrl = "${projectUrl}/${buildEntry.getInnerRun().number}"
+            def projectUrl = "${Jenkins.instance.rootUrl}${buildEntry.run.details.parent.url}"
+            def buildUrl = "${projectUrl}/${buildEntry.run.details.number}"
 
             l.a(href: projectUrl, class: " model-link tl-tr ") {
-                l.text(buildEntry.getInnerRun().parent.fullDisplayName)
+                l.text(buildEntry.run.details.parent.fullDisplayName)
             }
 
             l.raw(" ")
 
             l.a(href: buildUrl, class: " model-link tl-tr ") {
-                l.text("#${buildEntry.getInnerRun().number}")
+                l.text("#${buildEntry.run.details.number}")
             }
         }
     }

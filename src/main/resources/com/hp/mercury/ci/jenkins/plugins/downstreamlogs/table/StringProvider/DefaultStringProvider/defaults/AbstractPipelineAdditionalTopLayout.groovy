@@ -184,7 +184,7 @@ def associateSameAsAncestor(nodeToAssociate, currentAncestor, containingViews) {
             def previousAncestorContainingViews = containingViews;
 
             containingViews = containingViews.findResults { view ->
-                viewContains(view, be.run.parent) ? view : null
+                viewContains(view, be.run.details.parent) ? view : null
             }
 
             //if this ancestor isn't contained anywhere - skip it
@@ -210,7 +210,7 @@ def associateBuildToCluster(treeNode) {
 
     if (be instanceof BuildStreamTreeEntry.BuildEntry) {
 
-        def job = be.run.parent
+        def job = be.run.details.parent
         if (job instanceof MatrixConfiguration) {
             job = job.parent
         }
@@ -247,7 +247,7 @@ def renderBallForCluster(l, clusterTreeNodes) {
 
         def iter = clusterTreeNodes.iterator()
         while (iter.hasNext()) {
-            def iteratedResult = iter.next().value.run.result
+            def iteratedResult = iter.next().value.run.details.result
             result = iteratedResult == null ? Result.NOT_BUILT : result.combine(iteratedResult)
         }
     }

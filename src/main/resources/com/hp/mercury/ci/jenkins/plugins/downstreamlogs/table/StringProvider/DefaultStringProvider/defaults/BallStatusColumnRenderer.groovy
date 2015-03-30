@@ -33,7 +33,7 @@ class BallStatusColumnRenderer implements ColumnRenderer {
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.BuildEntry buildEntry) {
         //sort by image name
-        def image = buildEntry.run.iconColor.image
+        def image = buildEntry.run.details.iconColor.image
         l.img(src:"$Jenkins.instance.rootUrl$Functions.resourcePath/images/24x24/$image")
     }
 
