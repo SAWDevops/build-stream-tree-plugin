@@ -48,7 +48,7 @@ class TooltipLinksColumnRenderer implements ColumnRenderer {
 
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.JobEntry jobEntry) {
-        def projectUrl = "$Jenkins.instance.rootUrl$jobEntry.job.url"
+        def projectUrl = "$Jenkins.instance.rootUrl$jobEntry.job.details.url"
         l.a(href: projectUrl, class: " model-link tl-tr ") {
             l.text("JOB")
         }

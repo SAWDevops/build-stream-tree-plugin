@@ -87,7 +87,7 @@ public class EmailTreeColumnRenderer implements ColumnRenderer {
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.JobEntry jobEntry) {
 
-        def projectUrl = "$Jenkins.instance.rootUrl$jobEntry.job.url"
+        def projectUrl = "$Jenkins.instance.rootUrl$jobEntry.job.details.url"
 
         render (l, jobEntry) {
             l.a(href: projectUrl) {

@@ -2,6 +2,7 @@ package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
 import hudson.model.*;
 
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -18,7 +19,13 @@ public class DisplayDetails {
     private List<ParametersAction> parameterActions;
     private Run.Summary buildStatusSummary;
     private String timestampString;
+    private Calendar timestamp;
     private long timeInMillis;
+    private BallColor iconColor;
+    private long duration;
+    private String durationString;
+    private long estimatedDuration;
+
 
 
     public DisplayDetails(Run run){
@@ -32,7 +39,15 @@ public class DisplayDetails {
             this.parameterActions = run.getActions(ParametersAction.class);
             this.buildStatusSummary = run.getBuildStatusSummary();
             this.timestampString = run.getTimestampString();
+            this.timestamp = run.getTimestamp();
             this.timeInMillis = run.getTimeInMillis();
+            this.iconColor = run.getIconColor();
+            this.duration = run.getDuration();
+            this.durationString = run.getDurationString();
+            this.estimatedDuration = run.getEstimatedDuration();
+        }
+        else {
+            throw new IllegalStateException("Cannot create display details from a null Run object");
         }
     }
 
@@ -72,7 +87,27 @@ public class DisplayDetails {
         return timestampString;
     }
 
+    public Calendar getTimestamp() {
+        return timestamp;
+    }
+
     public long getTimeInMillis() {
         return timeInMillis;
+    }
+
+    public BallColor getIconColor() {
+        return iconColor;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
+    public String getDurationString() {
+        return durationString;
+    }
+
+    public long getEstimatedDuration() {
+        return estimatedDuration;
     }
 }

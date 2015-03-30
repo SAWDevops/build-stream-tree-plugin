@@ -56,14 +56,6 @@ public abstract class BuildStreamTreeEntry implements Comparable<BuildStreamTree
             this.buildNumber = this.run.getNumber();
         }
 
-        public Run getInnerRun(){
-            if(run!=null){
-                return run.getInnerRun();
-            }
-            return null;
-        }
-
-
         @Override
         public String toString() {
             return "BuildEntry{" +

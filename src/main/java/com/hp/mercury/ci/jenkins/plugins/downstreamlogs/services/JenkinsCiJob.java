@@ -1,6 +1,8 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DisplayDetails;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsManualEmebedViaJobProperty;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.JobDisplayDetails;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.Log;
 import hudson.model.ItemGroup;
 import hudson.model.Job;
@@ -79,5 +81,10 @@ public class JenkinsCiJob implements CiJob {
         }
         Log.warning("Tried to get job property from a null job, returning null");
         return null;
+    }
+
+    @Override
+    public JobDisplayDetails getDetails() {
+        return new JobDisplayDetails(job);
     }
 }

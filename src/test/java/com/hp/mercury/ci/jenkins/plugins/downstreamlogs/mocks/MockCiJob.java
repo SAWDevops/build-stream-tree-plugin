@@ -1,5 +1,6 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.mocks;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.JobDisplayDetails;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiJob;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiRun;
 import hudson.model.ItemGroup;
@@ -39,6 +40,11 @@ public class MockCiJob implements CiJob {
 
     @Override
     public JobProperty getDownstreamLogsManualEmebedViaJobProperty() {
+        return null;
+    }
+
+    @Override
+    public JobDisplayDetails getDetails() {
         return null;
     }
 }

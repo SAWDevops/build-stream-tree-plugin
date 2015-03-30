@@ -16,12 +16,12 @@ class LastSuccessColumnRenderer implements ColumnRenderer {
 
     Map cellMetadata(BuildStreamTreeEntry entry) {
 
-        if (entry instanceof BuildStreamTreeEntry.BuildEntry && (entry?.run?.parent?.lastSuccessfulBuild)) {
+        if (entry instanceof BuildStreamTreeEntry.BuildEntry && (entry?.run?.details.parent?.lastSuccessfulBuild)) {
             return [data: entry.run.details.parent.lastSuccessfulBuild.getTimeInMillis()]
         }
 
-        else if (entry instanceof BuildStreamTreeEntry.JobEntry && (entry.job.lastSuccessfulBuild)) {
-            return [data: entry.job.lastSuccessfulBuild.getTimeInMillis()]
+        else if (entry instanceof BuildStreamTreeEntry.JobEntry && (entry.job.details.lastSuccessfulBuild)) {
+            return [data: entry.job.details.lastSuccessfulBuild.getTimeInMillis()]
         }
 
         return [data:0];
@@ -45,7 +45,7 @@ class LastSuccessColumnRenderer implements ColumnRenderer {
 
     @Override
     void render(JenkinsLikeXmlHelper l, BuildStreamTreeEntry.JobEntry jobEntry) {
-        def build = jobEntry.job.lastSuccessfulBuild
+        def build = jobEntry.job.details.lastSuccessfulBuild
         renderNullSafe(build, l)
     }
 

@@ -19,7 +19,8 @@ class BallStatusColumnRenderer implements ColumnRenderer {
     Map cellMetadata(BuildStreamTreeEntry entry) {
         switch (entry) {
             case BuildStreamTreeEntry.BuildEntry:
-                return [data: entry.getRun().iconColor.image]
+                BuildStreamTreeEntry.BuildEntry buildEntry = (BuildStreamTreeEntry.BuildEntry)(entry)
+                return [data: buildEntry.run.details.iconColor.image]
                 break
             case BuildStreamTreeEntry.JobEntry:
                 return [data: BallColor.GREY.image]

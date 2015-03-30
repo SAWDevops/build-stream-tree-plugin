@@ -55,8 +55,8 @@ public class FailingLeavesColumnRenderer implements ColumnRenderer {
 
     Map cellMetadata(BuildStreamTreeEntry entry) {
 
-        return ( (entry instanceof BuildStreamTreeEntry.BuildEntry) && entry?.run?.result ?
-            [data:entry?.run?.result?.ordinal] :
+        return ( (entry instanceof BuildStreamTreeEntry.BuildEntry) && entry?.run?.details.result ?
+            [data:entry?.run?.details.result?.ordinal] :
             [data:Result.SUCCESS.ordinal]);
     }
 
@@ -66,9 +66,9 @@ public class FailingLeavesColumnRenderer implements ColumnRenderer {
 
         def run = buildEntry.run
         //run and buildEntry don't implement equals and hashcode, but we can use the string rep of a run as a uid
-        if (run.result != null && problems.contains(run.toString())) {
+        if (run.details.result != null && problems.contains(run.toString())) {
 
-            def image = run.iconColor.image
+            def image = run.details.iconColor.image
 
             l.img(src:"$Jenkins.instance.rootUrl$Functions.resourcePath/images/24x24/$image")
         }

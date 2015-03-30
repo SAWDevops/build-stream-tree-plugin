@@ -1,6 +1,8 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DisplayDetails;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsManualEmebedViaJobProperty;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.JobDisplayDetails;
 import hudson.model.ItemGroup;
 import hudson.model.JobProperty;
 
@@ -21,6 +23,8 @@ public interface CiJob {
 
     //TODO: refactor - change to a generic method
     public JobProperty getDownstreamLogsManualEmebedViaJobProperty();
+
+    public JobDisplayDetails getDetails();
 
 
 

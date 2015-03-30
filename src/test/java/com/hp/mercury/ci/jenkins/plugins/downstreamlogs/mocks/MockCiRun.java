@@ -1,5 +1,6 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.mocks;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DisplayDetails;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsCacheAction;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiJob;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.CiRun;
@@ -78,8 +79,14 @@ public class MockCiRun implements CiRun {
     }
 
     @Override
-    public Run getInnerRun() {
+    public DisplayDetails getDetails() {
         return null;
     }
+
+    @Override
+    public boolean isBuilding() {
+        return false;
+    }
+
 
 }

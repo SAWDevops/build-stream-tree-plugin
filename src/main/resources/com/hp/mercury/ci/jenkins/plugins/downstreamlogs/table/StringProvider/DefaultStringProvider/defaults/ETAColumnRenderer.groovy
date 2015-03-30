@@ -20,7 +20,7 @@ class ETAColumnRenderer implements ColumnRenderer {
             def run = entry.run
 
             if (run.isBuilding()) {
-                def estimated = run.getEstimatedDuration()
+                def estimated = run.details.estimatedDuration
                 def duration = System.currentTimeMillis() - run.details.timeInMillis
                 def eta = estimated - duration
                 return [data:eta]
