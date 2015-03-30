@@ -212,7 +212,7 @@ public class ParametersDiffColumnRenderer implements ColumnRenderer {
 
         def parentBuildEntry = this.init.findTreeNodeForBuildEntry(buildEntry).parent?.value
         def parentParameters = parentBuildEntry instanceof BuildStreamTreeEntry.BuildEntry ?
-            parentbuildEntry?.run?.details?.parameterActions:
+            parentBuildEntry?.run?.details?.parameterActions:
             null
 
         return [currentParameters, parentParameters]

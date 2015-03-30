@@ -1,6 +1,7 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
 import hudson.model.*;
+import hudson.tasks.test.AggregatedTestResultAction;
 
 import java.util.Calendar;
 import java.util.List;
@@ -25,6 +26,7 @@ public class DisplayDetails {
     private long duration;
     private String durationString;
     private long estimatedDuration;
+    private AggregatedTestResultAction testResultAction;
 
 
 
@@ -45,6 +47,8 @@ public class DisplayDetails {
             this.duration = run.getDuration();
             this.durationString = run.getDurationString();
             this.estimatedDuration = run.getEstimatedDuration();
+            this.testResultAction = run.getAction(AggregatedTestResultAction.class);
+
         }
         else {
             throw new IllegalStateException("Cannot create display details from a null Run object");
@@ -109,5 +113,9 @@ public class DisplayDetails {
 
     public long getEstimatedDuration() {
         return estimatedDuration;
+    }
+
+    public AggregatedTestResultAction getTestResultAction() {
+        return testResultAction;
     }
 }

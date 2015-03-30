@@ -246,7 +246,8 @@ public class DownstreamLogsUtils {
 
     private static boolean isUpstream(CiRun upstream, CiRun downstream) {
         for (Cause.UpstreamCause uc : getUpstreamCauses(downstream)) {
-            if (uc.getUpstreamRun().equals(upstream)) {
+            //TODO: Refactor - remove casting when replacing Cause
+            if (uc.getUpstreamRun().equals(((JenkinsCiRun) upstream).getRun())) {
                 return true;
             }
         }
@@ -320,9 +321,10 @@ public class DownstreamLogsUtils {
 
                 Log.debug("checking if " + referencingBuild + " was started by " + buildToReference);
 
+                //TODO: Refactor - wrap Cause
                 for (Cause.UpstreamCause upstreamCause : getUpstreamCauses(referencingBuild)) {
-
-                    if (buildToReference.equals(upstreamCause.getUpstreamRun())) {
+                     //TODO: Refactor - remove this casting when replacing Cause
+                    if (((JenkinsCiRun) buildToReference).getRun().equals(upstreamCause.getUpstreamRun())) {
 
                         Log.debug(buildToReference.toString() + " is upstream of " + referencingBuild + " according to " +
                                 upstreamCause.getClass().getSimpleName() + ", " + upstreamCause.getUpstreamProject() + ", " +

@@ -5,6 +5,8 @@ import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.JenkinsLikeXmlHelper
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.table.behavior.ColumnRenderer
 import hudson.Functions
 import hudson.model.AbstractBuild
+import hudson.model.Actionable
+import hudson.tasks.test.AggregatedTestResultAction
 import jenkins.model.Jenkins
 
 /**
@@ -37,8 +39,7 @@ class TestResultsLinksColumnRenderer implements ColumnRenderer {
         def projectUrl = "${Jenkins.instance.rootUrl}${buildEntry.run.details.parent.url}"
         def buildUrl = "${projectUrl}/${buildEntry.run.details.number}"
         //TODO: Refactor - test result actions exists in AbstractBuild and not in Run. how to avoid the casting?
-        def build = (AbstractBuild) buildEntry
-        def testResults = build.testResultAction
+        def testResults = buildEntry.run.details.testResultAction
         def testResultsUrl = "$buildUrl/${testResults?.urlName}"
 
         if (testResults == null) {
