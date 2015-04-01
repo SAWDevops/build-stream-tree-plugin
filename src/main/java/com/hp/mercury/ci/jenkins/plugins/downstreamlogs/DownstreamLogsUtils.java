@@ -12,7 +12,7 @@ import hudson.console.ConsoleNote;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixRun;
 import hudson.model.Cause;
-import hudson.model.Run;
+//import hudson.model.Run;
 import org.apache.commons.jelly.XMLOutput;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
