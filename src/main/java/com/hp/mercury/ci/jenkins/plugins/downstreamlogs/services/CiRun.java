@@ -6,6 +6,7 @@ import hudson.model.*;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,5 +40,8 @@ public interface CiRun {
 
     public boolean isBuilding();
 
+    public boolean isUpstream(CiRun upstream, CiRun downstream);
+
+    public Collection<CiRun> getRoots(CiRun ciRun);
 
 }

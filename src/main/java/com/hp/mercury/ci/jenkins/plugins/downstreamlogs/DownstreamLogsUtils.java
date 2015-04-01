@@ -13,6 +13,7 @@ import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixRun;
 import hudson.model.Cause;
 //import hudson.model.Run;
+import hudson.model.Run;
 import org.apache.commons.jelly.XMLOutput;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
@@ -463,39 +464,13 @@ public class DownstreamLogsUtils {
 
     public static Collection<CiRun> getRoots(final CiRun build) {
 
-        //TODO: Refactor - change build to CiRun
-        Collection<Cause.UpstreamCause> upstreamCauses = getUpstreamCauses(build);
-
-        //take runs from causes
-        final List<CiRun> upstreamRuns = CollectionUtils.map(upstreamCauses, new Handler<CiRun, Cause.UpstreamCause>() {
-
-            public CiRun apply(Cause.UpstreamCause upstreamCause) {
-                //TODO: Refactor - Wrap Upstream cause and return CiRun
-                return new JenkinsCiRun(upstreamCause.getUpstreamRun());
-            }
-        });
-
-        //if someone uses the "rebuild" plugin the upstream build can belong to a different build stream, so we validate that it really references our build...
-        CollectionUtils.filter(upstreamRuns, new Criteria<CiRun>() {
-            public boolean isSuccessful(CiRun ciRun) {
-                //check for null, maybe that build has been removed...?
-                return ciRun != null && isDownstream(ciRun, build);
-            }
-        });
-
-        //if we have no upstreams, we're the root
-        if (upstreamRuns.isEmpty()) {
-            return Collections.singletonList(build);
+        if(build!=null){
+            //TODO: Refactor - change to a no parameter method
+            return build.getRoots(build);
         }
-
-        //if we have upstreams, we need to find their roots recursively, and return the aggregation of the results: all the combined roots
-        //of all the upstream jobs.
-        else {
-            Collection<CiRun> upstreamRoots = new HashSet<CiRun>();
-            for (CiRun upstreamRun : upstreamRuns) {
-                upstreamRoots.addAll(getRoots(upstreamRun));
-            }
-            return upstreamRoots;
+        else{
+            Log.warning("Tried to get roots of a null build. Returning empty array list");
+            return new ArrayList<CiRun>(1);
         }
     }
 

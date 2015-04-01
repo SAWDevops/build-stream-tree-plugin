@@ -1,7 +1,12 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 
+import com.hp.commons.core.collection.CollectionUtils;
+import com.hp.commons.core.criteria.Criteria;
+import com.hp.commons.core.criteria.InstanceOfCriteria;
+import com.hp.commons.core.handler.Handler;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DisplayDetails;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsCacheAction;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsUtils;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.Log;
 import hudson.model.Cause;
 import hudson.model.ParametersAction;
@@ -9,8 +14,7 @@ import hudson.model.Run;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by kleintid on 3/25/2015.
@@ -156,4 +160,65 @@ public class JenkinsCiRun implements CiRun{
         }
         return false;
     }
+
+    @Override
+    public boolean isUpstream(CiRun upstream, CiRun downstream) {
+            for (Cause.UpstreamCause uc : getUpstreamCauses(downstream)) {
+                //TODO: Refactor - remove casting when replacing Cause
+                if (uc.getUpstreamRun().equals(((JenkinsCiRun) upstream).getRun())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+    private static List<Cause.UpstreamCause> getUpstreamCauses(CiRun run) {
+
+        //the newly allocated list has causes, but we filter all instances in it to be upstreamcauses,
+        //so de-facto is is an upstreamcause list, but this won't work with java's typing.
+        //see http://stackoverflow.com/questions/933447/how-do-you-cast-a-list-of-objects-from-one-type-to-another-in-java
+        List<?> temp = new ArrayList<Cause>((run.getCauses()));
+        CollectionUtils.filter(temp, new InstanceOfCriteria(Cause.UpstreamCause.class));
+        return (List<Cause.UpstreamCause>) temp;
+    }
+
+    @Override
+    public Collection<CiRun> getRoots(final CiRun build) {
+        //TODO: Refactor - change build to CiRun
+        Collection<Cause.UpstreamCause> upstreamCauses = getUpstreamCauses(build);
+
+        //take runs from causes
+        final List<CiRun> upstreamRuns = CollectionUtils.map(upstreamCauses, new Handler<CiRun, Cause.UpstreamCause>() {
+
+            public CiRun apply(Cause.UpstreamCause upstreamCause) {
+                //TODO: Refactor - Wrap Upstream cause and return CiRun
+                return new JenkinsCiRun(upstreamCause.getUpstreamRun());
+            }
+        });
+
+        //if someone uses the "rebuild" plugin the upstream build can belong to a different build stream, so we validate that it really references our build...
+        CollectionUtils.filter(upstreamRuns, new Criteria<CiRun>() {
+            public boolean isSuccessful(CiRun ciRun) {
+                //check for null, maybe that build has been removed...?
+                return ciRun != null && DownstreamLogsUtils.isDownstream(ciRun, build);
+            }
+        });
+
+        //if we have no upstreams, we're the root
+        if (upstreamRuns.isEmpty()) {
+            return Collections.singletonList(build);
+        }
+
+        //if we have upstreams, we need to find their roots recursively, and return the aggregation of the results: all the combined roots
+        //of all the upstream jobs.
+        else {
+            Collection<CiRun> upstreamRoots = new HashSet<CiRun>();
+            for (CiRun upstreamRun : upstreamRuns) {
+                upstreamRoots.addAll(getRoots(upstreamRun));
+            }
+            return upstreamRoots;
+        }
+    }
+
+
 }
