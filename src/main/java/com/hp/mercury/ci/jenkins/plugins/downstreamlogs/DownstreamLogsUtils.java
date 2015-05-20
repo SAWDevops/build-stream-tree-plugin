@@ -2,8 +2,6 @@ package com.hp.mercury.ci.jenkins.plugins.downstreamlogs;
 
 import com.hp.commons.core.collection.CollectionUtils;
 import com.hp.commons.core.criteria.Criteria;
-import com.hp.commons.core.criteria.InstanceOfCriteria;
-import com.hp.commons.core.handler.Handler;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services.*;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
@@ -11,8 +9,6 @@ import groovy.lang.GroovyCodeSource;
 import hudson.console.ConsoleNote;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixRun;
-import hudson.model.Cause;
-//import hudson.model.Run;
 import org.apache.commons.jelly.XMLOutput;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
@@ -23,6 +19,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
 import java.util.regex.Matcher;
+
+//import hudson.model.Run;
 
 
 /**
@@ -230,7 +228,7 @@ public class DownstreamLogsUtils {
         CollectionUtils.filter(triggered, new Criteria<BuildStreamTreeEntry>() {
             public boolean isSuccessful(BuildStreamTreeEntry buildStreamTreeEntry) {
                 if (buildStreamTreeEntry instanceof BuildStreamTreeEntry.BuildEntry) {
-                    return isUpstream(ciRun, ((BuildStreamTreeEntry.BuildEntry) buildStreamTreeEntry).getRun());
+                    return ciRun.isUpstream(((BuildStreamTreeEntry.BuildEntry) buildStreamTreeEntry).getRun());
                 }
                 //we have no new way to verify, but we're optimistic, so we'll say: ok!
                 else {
@@ -242,16 +240,6 @@ public class DownstreamLogsUtils {
         Log.debug("downstream builds of " + ciRun + " are " + triggered);
 
         return triggered;
-    }
-
-    private static boolean isUpstream(CiRun upstream, CiRun downstream) {
-        for (Cause.UpstreamCause uc : getUpstreamCauses(downstream)) {
-            //TODO: Refactor - remove casting when replacing Cause
-            if (uc.getUpstreamRun().equals(((JenkinsCiRun) upstream).getRun())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static class BuildExecutionByProjectCounter {
@@ -321,6 +309,31 @@ public class DownstreamLogsUtils {
 
                 Log.debug("checking if " + referencingBuild + " was started by " + buildToReference);
 
+                referencingBuild.isStartByBuild(buildToReference, projectDownstreamExecutionIndexOnBuild);
+
+                //iterating over list of CiRun that was returned by get upstream cause
+                for (CiRun ciRunCause : referencingBuild.getUpstreamCiRunCauses()) {
+                    //TODO: Refactor - not sure it is correct, the problem was that there
+                    //TODO: is no getRun in the interface
+                    if (buildToReference.equals(ciRunCause)) {
+                        Log.debug(buildToReference.toString() + " is upstream of " + referencingBuild + " according to " +
+                                ciRunCause.getClass().getSimpleName() + ", " + ciRunCause.getUpstreamProject() + ", " +
+                                ciRunCause.getUpstreamBuild());
+
+                        if (--projectDownstreamExecutionIndexOnBuild < 0) {
+
+                            Log.debug(referencingBuild + " is the build that was triggered by " + buildToReference + " " +
+                                    "on this parsed line");
+                            return referencingBuild;
+                        } else {
+                            Log.debug("skipping " + referencingBuild + " because it's the " + projectDownstreamExecutionIndexOnBuild + "'th execution of the build," +
+                                    "which was triggered in a previous step...");
+
+                        }
+                    }
+                }
+
+            /*
                 //TODO: Refactor - wrap Cause
                 for (Cause.UpstreamCause upstreamCause : getUpstreamCauses(referencingBuild)) {
                      //TODO: Refactor - remove this casting when replacing Cause
@@ -343,6 +356,7 @@ public class DownstreamLogsUtils {
                     }
                 }
 
+            */
             }
 
         }
@@ -350,15 +364,6 @@ public class DownstreamLogsUtils {
         return null;
     }
 
-    private static List<Cause.UpstreamCause> getUpstreamCauses(CiRun run) {
-
-        //the newly allocated list has causes, but we filter all instances in it to be upstreamcauses,
-        //so de-facto is is an upstreamcause list, but this won't work with java's typing.
-        //see http://stackoverflow.com/questions/933447/how-do-you-cast-a-list-of-objects-from-one-type-to-another-in-java
-        List<?> temp = new ArrayList<Cause>(run.getCauses());
-        CollectionUtils.filter(temp, new InstanceOfCriteria(Cause.UpstreamCause.class));
-        return (List<Cause.UpstreamCause>) temp;
-    }
 
     private static List<BuildStreamTreeEntry> fromProjectName(
             Matcher matcher,
@@ -463,17 +468,8 @@ public class DownstreamLogsUtils {
 
     public static Collection<CiRun> getRoots(final CiRun build) {
 
-        //TODO: Refactor - change build to CiRun
-        Collection<Cause.UpstreamCause> upstreamCauses = getUpstreamCauses(build);
-
         //take runs from causes
-        final List<CiRun> upstreamRuns = CollectionUtils.map(upstreamCauses, new Handler<CiRun, Cause.UpstreamCause>() {
-
-            public CiRun apply(Cause.UpstreamCause upstreamCause) {
-                //TODO: Refactor - Wrap Upstream cause and return CiRun
-                return new JenkinsCiRun(upstreamCause.getUpstreamRun());
-            }
-        });
+        final List<CiRun> upstreamRuns = build.getUpstreamRuns(build);
 
         //if someone uses the "rebuild" plugin the upstream build can belong to a different build stream, so we validate that it really references our build...
         CollectionUtils.filter(upstreamRuns, new Criteria<CiRun>() {

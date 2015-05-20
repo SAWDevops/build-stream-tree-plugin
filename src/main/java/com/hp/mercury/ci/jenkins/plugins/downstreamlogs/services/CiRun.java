@@ -6,6 +6,7 @@ import hudson.model.*;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -38,6 +39,18 @@ public interface CiRun {
     public DisplayDetails getDetails();
 
     public boolean isBuilding();
+
+    public List<CiRun> getUpstreamRuns(final CiRun build);
+
+    public boolean isUpstream(CiRun downstream);
+
+    public CiRun isStartByBuild(CiRun buildToReference, Integer projectDownstreamExecutionIndexOnBuild);
+
+    public List<CiRun> getUpstreamCiRunCauses();
+
+    public String getUpstreamProject();
+
+    public int getUpstreamBuild();
 
 
 }
