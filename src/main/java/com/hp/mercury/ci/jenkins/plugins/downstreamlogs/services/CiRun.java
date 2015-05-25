@@ -1,5 +1,6 @@
 package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.BuildStreamTreeEntry;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DisplayDetails;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsCacheAction;
 import hudson.model.*;
@@ -44,13 +45,13 @@ public interface CiRun {
 
     public boolean isUpstream(CiRun downstream);
 
-    public CiRun isStartByBuild(CiRun buildToReference, Integer projectDownstreamExecutionIndexOnBuild);
-
     public List<CiRun> getUpstreamCiRunCauses();
 
     public String getUpstreamProject();
 
     public int getUpstreamBuild();
+
+    public List<CiRun> getInternalRuns();
 
 
 }

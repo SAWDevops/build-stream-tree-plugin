@@ -7,8 +7,10 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import hudson.console.ConsoleNote;
+
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixRun;
+
 import org.apache.commons.jelly.XMLOutput;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
@@ -98,18 +100,7 @@ public class DownstreamLogsUtils {
         CiService ciService = new JenkinsCiService();
         Log.debug("getting downstream runs of " + ciRun.toString());
 
-        CiJob parent = null;
-        //write explicitly instead of using ternary for different lines to appear in debug/exceptions.
-        final boolean isMatrixRun = ciRun instanceof MatrixRun;
-        if (isMatrixRun) {
-            final MatrixRun matrixRun = (MatrixRun) ciRun;
-            final MatrixBuild parentBuild = matrixRun.getParentBuild();
-            if (parentBuild != null) {
-                parent = new JenkinsCiJob(parentBuild.getParent());
-            }
-        } else {
-            parent = ciRun.getParent();
-        }
+        CiJob parent = ciRun.getParent();
 
         DownstreamLogsManualEmebedViaJobProperty property = (parent != null) ?
                 (DownstreamLogsManualEmebedViaJobProperty) parent.getDownstreamLogsManualEmebedViaJobProperty() :
@@ -182,16 +173,9 @@ public class DownstreamLogsUtils {
 
         ArrayList<BuildStreamTreeEntry> triggered = new ArrayList<BuildStreamTreeEntry>();
 
-        if (ciRun instanceof MatrixBuild) {
-            MatrixBuild mb = (MatrixBuild) ciRun;
-            Log.debug("ciRun is a matrix build with exact runs " + mb.getExactRuns());
-            for (Run internalMatrixRun : mb.getExactRuns()) {
-                //TODO: Refactor - create an interface for MatrixBuild with a
-                // method getExactRuns that would return List<MatrixCiRun>
-                JenkinsCiRun internalMatrixCiRun = new JenkinsCiRun(internalMatrixRun);
-                triggered.add(new BuildStreamTreeEntry.BuildEntry(internalMatrixCiRun));
-            }
-        }
+        //adds matrix runs
+        triggered.addAll(CiRunListToBuildStreamTreeEntryList(ciRun.getInternalRuns()));
+
 
         BuildExecutionByProjectCounter buildExecutionByProject = new BuildExecutionByProjectCounter();
         Reader reader;
@@ -240,6 +224,14 @@ public class DownstreamLogsUtils {
         Log.debug("downstream builds of " + ciRun + " are " + triggered);
 
         return triggered;
+    }
+
+    private static List<BuildStreamTreeEntry> CiRunListToBuildStreamTreeEntryList(List<CiRun> ciRuns){
+        List<BuildStreamTreeEntry> buildStreamTreeEntryList = new ArrayList<BuildStreamTreeEntry>(0);
+        for (CiRun ciRun : ciRuns){
+            buildStreamTreeEntryList.add(new BuildStreamTreeEntry.BuildEntry(ciRun));
+        }
+        return buildStreamTreeEntryList;
     }
 
     private static class BuildExecutionByProjectCounter {
@@ -308,8 +300,6 @@ public class DownstreamLogsUtils {
                  referencingBuild = referencingBuild.getPreviousBuild()) {
 
                 Log.debug("checking if " + referencingBuild + " was started by " + buildToReference);
-
-                referencingBuild.isStartByBuild(buildToReference, projectDownstreamExecutionIndexOnBuild);
 
                 //iterating over list of CiRun that was returned by get upstream cause
                 for (CiRun ciRunCause : referencingBuild.getUpstreamCiRunCauses()) {

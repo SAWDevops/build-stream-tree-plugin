@@ -88,5 +88,29 @@ public class MockCiRun implements CiRun {
         return false;
     }
 
+    public List<CiRun> getUpstreamRuns(CiRun build) {
+        return null;
+    }
+
+    public boolean isUpstream(CiRun downstream) {
+        return false;
+    }
+
+    public List<CiRun> getUpstreamCiRunCauses() {
+        return null;
+    }
+
+    public String getUpstreamProject() {
+        return null;
+    }
+
+    public int getUpstreamBuild() {
+        return 0;
+    }
+
+    public List<CiRun> getInternalRuns() {
+        return null;
+    }
+
 
 }

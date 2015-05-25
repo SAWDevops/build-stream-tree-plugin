@@ -24,7 +24,7 @@
         <token-macro.version>1.10</token-macro.version>
         <credentials.version>1.21</credentials.version>
         <maven-plugin.version>2.8</maven-plugin.version>
-        <mockito-core.version>1.8.5</mockito-core.version>
+        <mockito-core.version>1.10.19</mockito-core.version>
     </properties>
 
     <dependencies>

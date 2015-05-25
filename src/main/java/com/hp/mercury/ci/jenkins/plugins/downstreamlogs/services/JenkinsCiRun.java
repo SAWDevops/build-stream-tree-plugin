@@ -3,11 +3,14 @@ package com.hp.mercury.ci.jenkins.plugins.downstreamlogs.services;
 import com.hp.commons.core.collection.CollectionUtils;
 import com.hp.commons.core.criteria.InstanceOfCriteria;
 import com.hp.commons.core.handler.Handler;
+import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.BuildStreamTreeEntry;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DisplayDetails;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.DownstreamLogsCacheAction;
 import com.hp.mercury.ci.jenkins.plugins.downstreamlogs.Log;
 import hudson.model.Cause;
 import hudson.model.Run;
+import hudson.matrix.MatrixBuild;
+import hudson.matrix.MatrixRun;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -38,12 +41,24 @@ public class JenkinsCiRun implements CiRun {
 
     @Override
     public CiJob getParent() {
+        CiJob returnCiJob = null;
         if (run != null) {
-            return new JenkinsCiJob(run.getParent());
-        } else {
+
+            //write explicitly instead of using ternary for different lines to appear in debug/exceptions.
+            final boolean isMatrixRun = run instanceof MatrixRun;
+            if (isMatrixRun) {
+                final MatrixRun matrixRun = (MatrixRun) run;
+                final MatrixBuild parentBuild = matrixRun.getParentBuild();
+                if (parentBuild != null) {
+                    returnCiJob =  new JenkinsCiJob(parentBuild.getParent());
+                }
+            } else {
+                returnCiJob = new JenkinsCiJob(run.getParent());
+            }
+        }else {
             Log.warning("Tried to get run's parent from a null run, returning null");
-            return null;
         }
+        return returnCiJob;
     }
 
     @Override
@@ -143,6 +158,8 @@ public class JenkinsCiRun implements CiRun {
                 return new JenkinsCiRun(upstreamCause.getUpstreamRun());
             }
         });
+
+        return upstreamRuns;
     }
 
     public boolean isUpstream(CiRun downstream) {
@@ -153,29 +170,6 @@ public class JenkinsCiRun implements CiRun {
             }
         }
         return false;
-    }
-
-    public CiRun isStartByBuild(CiRun buildToReference, Integer projectDownstreamExecutionIndexOnBuild) {
-        for (Cause.UpstreamCause upstreamCause : getUpstreamCauses(this)) {
-            //TODO: Refactor - remove this casting when replacing Cause
-            if (((JenkinsCiRun) buildToReference).getRun().equals(upstreamCause.getUpstreamRun())) {
-
-                Log.debug(buildToReference.toString() + " is upstream of " + this + " according to " +
-                        upstreamCause.getClass().getSimpleName() + ", " + upstreamCause.getUpstreamProject() + ", " +
-                        upstreamCause.getUpstreamBuild());
-
-                if (--projectDownstreamExecutionIndexOnBuild < 0) {
-
-                    Log.debug(this + " is the build that was triggered by " + buildToReference + " " +
-                            "on this parsed line");
-                    return this;
-                } else {
-                    Log.debug("skipping " + this + " because it's the " + projectDownstreamExecutionIndexOnBuild + "'th execution of the build," +
-                            "which was triggered in a previous step...");
-
-                }
-            }
-        }
     }
 
     private static List<Cause.UpstreamCause> getUpstreamCauses(CiRun run) {
@@ -207,6 +201,19 @@ public class JenkinsCiRun implements CiRun {
         return this.getUpstreamCause().getUpstreamBuild();
     }
 
+    public List<CiRun> getInternalRuns(){
+        List<CiRun> internalRuns = new ArrayList<CiRun>(0);
+        if (this.getRun() instanceof MatrixBuild) {
+            MatrixBuild mb = (MatrixBuild) this.getRun();
+            Log.debug("ciRun is a matrix build with exact runs " + mb.getExactRuns());
+            for (Run internalMatrixRun : mb.getExactRuns()) {
+                //TODO: Refactor - create an interface for MatrixBuild with a
+                // method getExactRuns that would return List<MatrixCiRun>
+                internalRuns.add(new JenkinsCiRun(internalMatrixRun));
+            }
+        }
+        return internalRuns;
+    }
 
     public DisplayDetails getDetails() {
         return new DisplayDetails(run);
