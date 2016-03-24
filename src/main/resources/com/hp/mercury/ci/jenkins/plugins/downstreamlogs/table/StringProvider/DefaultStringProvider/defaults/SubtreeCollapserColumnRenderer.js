@@ -159,12 +159,12 @@ function doExpandCollapse(plusMinusDiv, newImage, newVisibility, newExpanded, un
 
     var rows = tr.parentNode.rows;
     if (newExpanded === "true") {
-        docCookies.setItem(cookieCollapseState, "false");
+        docCookies.setItem(cookieCollapseState, "false", null, "/");
         var trPrefix = getTrPrefixByPlusMinusDiv(plusMinusDiv);
         expandChildRows(trPrefix);
     }
     else {
-        docCookies.setItem(cookieCollapseState, "true");
+        docCookies.setItem(cookieCollapseState, "true", null, "/");
         var trPrefix = getTrPrefixByPlusMinusDiv(plusMinusDiv);
         collapseChildRows(trPrefix);
     }
