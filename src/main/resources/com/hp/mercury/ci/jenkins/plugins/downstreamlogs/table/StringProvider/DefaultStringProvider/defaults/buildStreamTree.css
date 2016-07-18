@@ -1,0 +1,9 @@
+#build-stream-tree-table th { text-align:left }
+.Tree{
+    width:40%;
+}
+/*without nowrap the text of the tree column breaks to the next
+line, therefore the whole table looks like a mess*/
+tr.tableRow {
+    white-space: nowrap;
+}
